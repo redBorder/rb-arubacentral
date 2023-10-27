@@ -11,3 +11,6 @@ kafka:
   broker: kafka.redborder.cluster:9092
   producer_name: my_aruba_producer
   topic: rb_loc
+
+service:
+  sleep_time: 300
