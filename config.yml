@@ -1,0 +1,13 @@
+aruba:
+  gateway: https://apigw-eucentral3.central.arubanetworks.com
+  email: 
+  password:
+  client_id:
+  client_secret: 
+  customer_id: 
+  base_url: https://apigw-eucentral3.central.arubanetworks.com
+
+kafka:
+  broker: kafka.redborder.cluster:9092
+  producer_name: my_aruba_producer
+  topic: rb_loc
