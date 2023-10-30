@@ -62,7 +62,7 @@ module Kafka
       result = []
       data.each do |item|
         json_message = {
-          'wireless_station' => item[:ap_mac_address],
+          'wireless_station' => item[:ap_mac_address].downcase,
           'type' => 'snmp_apMonitor',
           'client_count' => item[:ap_client_count],
           'timestamp' => Time.now.to_i,
