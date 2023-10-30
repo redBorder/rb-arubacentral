@@ -11,10 +11,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout branch
       - uses: actions/checkout@v3
 
-      - name: RuboCop Linter Action
-        uses: andrewmcodes/rubocop-linter-action@v3.3.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install RuboCop
+        run: sudo gem install rubocop
+
+      - name: Run RuboCop
+        run: rubocop
+
+      - name: Fail if any offenses are found
+        if: ${{ steps.rubocop.outputs.exit-code != 0 }}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              body: 'RuboCop found offenses. Please fix them before merging.'
+            })
