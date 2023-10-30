@@ -8,12 +8,13 @@ on:
 
 jobs:
   build:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby 2.1.2
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.1.2'
+          ruby-version: '2.1.2p95'
       - name: Run tests
         run: ruby /tests/all.rb
