@@ -1,16 +1,17 @@
 sensors:
-  -  
-       name :
+  -
+       sensor_name: Ermua Aruba Central
        gateway: 'https://apigw-eucentral3.central.arubanetworks.com'
-       email: 
-       password: 
-       client_id: 
-       client_secret: 
-       customer_id: 
+       email: ''
+       password: ''
+       client_id: ''
+       client_secret: ''
+       customer_id: ''
        base_url: 'https://apigw-eucentral3.central.arubanetworks.com'
 kafka:
   broker: 'kafka.redborder.cluster:9092'
   producer_name: my_aruba_producer
-  topic: rb_loc
+  location_topic: rb_loc
+  status_topic: rb_status
 service:
   sleep_time: 300
