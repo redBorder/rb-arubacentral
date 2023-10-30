@@ -1,16 +1,15 @@
 require 'yaml'
 
 module ConfigManager
-  CONFIG_FILE_PATH = 'config.yml'
 
-  def self.load_config
+  def self.load_config(config_file)
 
-    unless File.exist?(CONFIG_FILE_PATH)
-      puts "Config file '#{CONFIG_FILE_PATH}' not found."
+    unless File.exist?(config_file)
+      puts "Config file '#{config_file}' not found."
       exit 1
     end
 
-    config = YAML.load_file(CONFIG_FILE_PATH)
+    config = YAML.load_file(config_file)
 
     config
   end
