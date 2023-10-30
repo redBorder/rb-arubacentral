@@ -17,4 +17,4 @@ jobs:
         with:
           ruby-version: '2.1.9'
       - name: Run tests
-        run: ruby /tests/all.rb
+        run: ruby tests/all.rb
