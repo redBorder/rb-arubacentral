@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Ruby 2.1.2
+      - name: Set up Ruby 2.1.9
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.1.2p95'
+          ruby-version: '2.1.9'
       - name: Run tests
         run: ruby /tests/all.rb
