@@ -1,1 +1,1 @@
-gem 'poseidon', '=0.0.5'
+gem 'poseidon', '~> 0.0.5'
