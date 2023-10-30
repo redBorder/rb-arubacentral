@@ -13,6 +13,7 @@ class OAuthHelperTest < Test::Unit::TestCase
     customer_id = 'my_customer_id'
 
     response = @oauth_helper.oauth('https://apigw-eucentral3.central.arubanetworks.com', 'root', 'root', client_id, client_secret, customer_id)
+    puts response['error']
     assert_equal('invalid_client', response['error'])
   end
 end
