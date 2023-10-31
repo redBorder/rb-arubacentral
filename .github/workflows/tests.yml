@@ -20,4 +20,9 @@ jobs:
         run: bundle install
 
       - name: Run tests
-        run: tests/all.sh
+        run: rake test
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
