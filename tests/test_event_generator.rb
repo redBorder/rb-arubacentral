@@ -1,5 +1,5 @@
 require_relative './helpers/codecov_helper.rb'
-require_relative '../src/kafka/producer.rb'
+require_relative '../lib/kafka/producer.rb'
 require 'test/unit'
 
 # Test Kafka Event Generator
@@ -70,6 +70,41 @@ class EventGeneratorTest < Test::Unit::TestCase
     ]
 
     actual_result = @event_generator.location_from_multiple_messages(data)
+
+    assert_equal expected_result, actual_result
+  end
+
+  def test_status_from_multiple_messages
+    data = [
+      {
+        ap_mac_address: '00:00:00:00:00',
+        ap_client_count: 0,
+        ap_status: 'on'
+      },
+      {
+        ap_mac_address: '00:00:00:00:01',
+        ap_client_count: 10,
+        ap_status: 'off'
+      }
+    ]
+
+    expected_result = [
+      {
+        'wireless_station' => '00:00:00:00:00',
+        'type' => 'snmp_apMonitor',
+        'client_count' => 0,
+        'timestamp' => Time.now.to_i,
+        'status' => 'on'
+      },
+      {
+        'wireless_station' => '00:00:00:00:01',
+        'type' => 'snmp_apMonitor',
+        'client_count' => 10,
+        'timestamp' => Time.now.to_i,
+        'status' => 'off'
+      }
+    ]
+    actual_result = @event_generator.status_from_multiple_messages(data)
 
     assert_equal expected_result, actual_result
   end

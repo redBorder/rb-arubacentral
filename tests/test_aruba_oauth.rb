@@ -1,5 +1,5 @@
 require_relative './helpers/codecov_helper.rb'
-require_relative '../src/helpers/aruba_oauth.rb'
+require_relative '../lib/helpers/aruba_oauth.rb'
 require 'test/unit'
 
 # Test Oauth Service

@@ -1,5 +1,5 @@
 require_relative './helpers/codecov_helper.rb'
-require_relative '../src/api/aruba_client.rb'
+require_relative '../lib/api/aruba_client.rb'
 require 'test/unit'
 
 # Test Aruba REST

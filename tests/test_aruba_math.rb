@@ -1,5 +1,5 @@
 require_relative './helpers/codecov_helper.rb'
-require_relative '../src/helpers/aruba_math.rb'
+require_relative '../lib/helpers/aruba_math.rb'
 require 'test/unit'
 
 # Test Math Helpers

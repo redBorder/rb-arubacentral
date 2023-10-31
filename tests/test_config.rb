@@ -1,12 +1,12 @@
 require_relative './helpers/codecov_helper.rb'
-require_relative '../src/helpers/aruba_config.rb'
+require_relative '../lib/helpers/aruba_config.rb'
 require 'test/unit'
 require 'yaml'
 
 # Test Config Manager
 class ConfigManagerTest < Test::Unit::TestCase
   def setup
-    @config_file = './src/config.yml'
+    @config_file = './lib/config.yml'
   end
 
   def test_load_config_with_valid_config_file
