@@ -1,3 +1,4 @@
+require_relative './helpers/codecov_helper.rb'
 require_relative '../src/kafka/producer.rb'
 require 'test/unit'
 
