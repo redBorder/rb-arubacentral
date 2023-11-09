@@ -20,7 +20,7 @@ require 'test/unit'
 # Test Aruba REST
 class ArubaRESTClientTest < Test::Unit::TestCase
   def setup
-    @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id')
+    @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id', 0)
   end
 
   def test_initialize
