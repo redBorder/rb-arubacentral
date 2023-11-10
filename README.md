@@ -33,7 +33,7 @@ The rb-arubacentral service processes data from the Aruba Central REST API. Afte
 
 ### 2.3 Service
 - **sleep_time** (integer): Sleep time of service in seconds (for the main loop)
-- **log_lvel** (integer): Log Level (2=info) (3=debug)
+- **log_level** (integer): Log Level (2=info) (3=debug)
 
 
 ### 2.4 Example
