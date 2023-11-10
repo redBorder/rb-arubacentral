@@ -45,16 +45,19 @@ module ArubaLogger
     def debug(message)
       @last_log = message
       @logger.debug(c(:blue, message)) if @log_level >= 3
+      STDOUT.flush
     end
 
     def error(message)
       @last_log = message
       @logger.error(c(:red, message))
+      STDOUT.flush
     end
 
     def info(message)
       @last_log = message
       @logger.info(c(:green, message)) if @log_level >= 2
+      STDOUT.flush
     end
   end
 end
