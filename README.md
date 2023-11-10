@@ -29,7 +29,7 @@ The rb-arubacentral service processes data from the Aruba Central REST API. Afte
 - **broker** (string): Kafka Broker
 - **producer_name** (string): Kafka Producer Name
 - **location_topic** (string): Kafka Location Topic
-- **status_topic** (string): Kafka Location Status
+- **status_topic** (string): Kafka Status Topic
 
 ### 2.3 Service
 - **sleep_time** (integer): Sleep time of service in seconds (for the main loop)
