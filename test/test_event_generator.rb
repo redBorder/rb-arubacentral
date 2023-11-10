@@ -20,7 +20,7 @@ require 'test/unit'
 # Test Kafka Event Generator
 class EventGeneratorTest < Test::Unit::TestCase
   def setup
-    @event_generator = Kafka::EventGenerator.new
+    @event_generator = Kafka::EventGenerator.new 0
   end
 
   def test_location_from_multiple_messages

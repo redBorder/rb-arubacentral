@@ -20,7 +20,7 @@ require 'test/unit'
 # Test Kafka Producer
 class ProducerTest < Test::Unit::TestCase
   def setup
-    @producer = Kafka::Producer.new('localhost:9092', 'test-producer')
+    @producer = Kafka::Producer.new('localhost:9092', 'test-producer', 0)
   end
 
   def test_send_to_kafka

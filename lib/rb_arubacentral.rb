@@ -17,6 +17,7 @@ require 'getopt/std'
 
 require_relative './api/aruba_client'
 require_relative './helpers/aruba_config'
+require_relative './helpers/aruba_logger'
 require_relative './kafka/producer.rb'
 
 CONFIG_FILE_PATH = 'config.yml'.freeze
@@ -29,6 +30,8 @@ config = ConfigManager.load_config(config_file)
 
 sensors = config['sensors']
 
+log_level = config['service']['log_level']
+
 sensors.each do |sensor|
   aruba_central = ArubaREST::Client.new(
     sensor['gateway'],
@@ -36,27 +39,38 @@ sensors.each do |sensor|
     sensor['password'],
     sensor['client_id'],
     sensor['client_secret'],
-    sensor['customer_id']
+    sensor['customer_id'],
+    log_level
   )
   aruba_central_sensors.push(aruba_central)
 end
 
 producer = Kafka::Producer.new(
   config['kafka']['broker'],
-  config['kafka']['producer_name']
+  config['kafka']['producer_name'],
+  log_level
 )
 
-generator = Kafka::EventGenerator.new
+generator = Kafka::EventGenerator.new(
+  log_level
+)
+
+log_controller = ArubaLogger::LogController.new(
+  'Main',
+  log_level
+)
 
 loop do
   aruba_central_sensors.each do |aruba_central_sensor|
     begin
+      log_controller.info("Processing sensor #{aruba_central_sensor}")
       location_data = generator.location_from_multiple_messages(aruba_central_sensor.fetch_location_production_data)
       status_data = generator.status_from_multiple_messages(aruba_central_sensor.fetch_ap_status_production_data)
       producer.send_kafka_multiple_msgs(location_data, config['kafka']['location_topic'])
       producer.send_kafka_multiple_msgs(status_data, config['kafka']['status_topic'])
-    rescue StandardError
-      puts "Something went wrong in sensor #{aruba_central_sensor}"
+    rescue StandardError => e
+      log_controller.error("There was an error while proccesing sensor #{aruba_central_sensor} : #{e.message}")
+      log_controller.error("Trace: #{e.backtrace.join("\n")}")
     end
   end
   sleep(config['service']['sleep_time'])

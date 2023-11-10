@@ -15,6 +15,7 @@
 
 require_relative '../helpers/aruba_oauth'
 require_relative '../helpers/aruba_math'
+require_relative '../helpers/aruba_logger'
 require 'net/http'
 require 'time'
 require 'json'
@@ -23,9 +24,9 @@ require 'json'
 module ArubaREST
   # Aruba REST Client implementation for ruby
   class Client
-    attr_accessor :self_token, :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :connections
+    attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :self_token
 
-    def initialize(gateway, username, password, client_id, client_secret, client_customer_id)
+    def initialize(gateway, username, password, client_id, client_secret, client_customer_id, log_level)
       @gateway = gateway
       @username = username
       @password = password
@@ -33,10 +34,15 @@ module ArubaREST
       @client_secret = client_secret
       @client_customer_id = client_customer_id
       @connections = {}
+      @log_controller = ArubaLogger::LogController.new(
+        'ArubaREST',
+        log_level
+      )
       refresh_oauth_token
     end
 
     def refresh_oauth_token
+      @log_controller.info('Refreshing oauth_token...')
       @self_token = OAuthHelper.oauth(
         @gateway,
         @username,
@@ -48,6 +54,7 @@ module ArubaREST
     end
 
     def make_api_request(api_endpoint)
+      @log_controller.debug("Requesting data from #{api_endpoint}")
       uri = URI.join(@gateway, api_endpoint)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = (uri.scheme == 'https')
@@ -61,12 +68,15 @@ module ArubaREST
       response = make_api_request(api_endpoint)
 
       data = {}
+      @log_controller.debug("Response status code is #{response.code}")
       case response.code
       when '200'
         data = JSON.parse(response.body)
       when '401'
+        @log_controller.debug('401, refreshing token')
         refresh_oauth_token
         response = make_api_request(api_endpoint)
+        @log_controller.debug('Re-requesting data...')
         data = JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
       end
       data
@@ -108,19 +118,22 @@ module ArubaREST
       }
 
       campuses = fetch_all_campuses
-
+      @log_controller.debug("Campus data #{campuses}")
       campuses['campus'].each do |campus|
         campus_info = fetch_campus(campus['campus_id'])
+        @log_controller.debug("Campus info for #{campus['campus_id']} -> #{campus_info}")
         buildings = campus_info['buildings']
 
         buildings.each do |building|
           building_info = fetch_building(building['building_id'])
+          @log_controller.debug("Building info #{building_info}")
           floors = building_info['floors']
 
           data[:floors].push(floors)
 
           floors.each do |floor|
             aps = fetch_aps(floor['floor_id'])
+            @log_controller.debug("Aps info #{aps}")
             data[:aps].push(aps)
 
             aps['access_points'].each do |ap|
@@ -161,6 +174,7 @@ module ArubaREST
     end
 
     def find_associated_device_mac(data, macaddr_to_find)
+      @log_controller.debug("Finding associated device mac for #{macaddr_to_find}")
       if data && data['clients'].is_a?(Array)
         data['clients'].each do |client|
           return client['associated_device_mac'] if client['macaddr'] == macaddr_to_find
@@ -169,7 +183,24 @@ module ArubaREST
       nil
     end
 
+    def find_ap_info(top, ap_mac, client_real_x, client_real_y)
+      @log_controller.debug("Finding AP info for #{ap_mac}, x: #{client_real_x}, y: #{client_real_y}")
+      ap_info = top[:aps_info][ap_mac.downcase]
+      ap_info = top[:aps_info][find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac'].downcase] if ap_info.nil?
+      ap_info
+    end
+
+    def find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
+      ap_mac = if is_client_associated
+                 find_associated_device_mac(clients, client_mac_address) || find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
+               else
+                 find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
+               end
+      ap_mac
+    end
+
     def fetch_location_production_data
+      @log_controller.info('Calculating location data...')
       top = fetch_ap_top
       clients = fetch_wireless_clients
       @connections = {}
@@ -186,16 +217,16 @@ module ArubaREST
             client_mac_address = client['device_mac']
             is_client_associated = client['associated']
 
-            ap_mac = if is_client_associated
-                       find_associated_device_mac(clients, client_mac_address) || find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
-                     else
-                       find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
-                     end
+            ap_mac = find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
+
+            @log_controller.debug("AP mac found -> #{ap_mac}")
 
             @connections[ap_mac] ||= 0
             @connections[ap_mac] += 1 if is_client_associated
 
-            ap_info = top[:aps_info][ap_mac.downcase]
+            @log_controller.debug("Connections for #{ap_mac} are -> #{@connections[ap_mac]}")
+
+            ap_info = find_ap_info(top, ap_mac, client_real_x, client_real_y)
 
             client_real_lat, client_real_lon = ArubaMathHelper.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
 
@@ -216,6 +247,7 @@ module ArubaREST
     end
 
     def fetch_ap_status_production_data
+      @log_controller.info('Calculating APs statuses...')
       access_points = []
       data = fetch_ap_status
 

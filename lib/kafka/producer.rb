@@ -15,28 +15,33 @@
 
 require 'poseidon'
 require 'time'
+require_relative '../helpers/aruba_logger'
 
 module Kafka
   # Class to produce kafka messages to the destination kafka broker
   class Producer
-    attr_accessor :producer, :host, :producer_name
-
-    def initialize(host, producer_name)
+    def initialize(host, producer_name, log_level)
       @host = host
       @producer_name = producer_name
       @producer = Poseidon::Producer.new([@host], @producer_name)
+      @log_controller = ArubaLogger::LogController.new(
+        'Kafka',
+        log_level
+      )
     end
 
     def send_to_kafka(msg, topic)
       messages = []
       messages << Poseidon::MessageToSend.new(topic, msg.to_json)
       @producer.send_messages(messages)
-    rescue StandardError
-      p "Error producing messages to kafka #{topic}..."
+    rescue StandardError => e
+      @log_controller.error("Error producing messages to kafka #{topic} : #{e.message}")
     end
 
     def send_kafka_multiple_msgs(msgs, topic = 'rb_loc')
+      @log_controller.info('Producing data to kafka...')
       msgs.each do |msg|
+        @log_controller.debug("Producing msg to kafka -> #{msg} to topic -> #{topic}")
         send_to_kafka(msg, topic)
       end
     end
@@ -44,6 +49,13 @@ module Kafka
 
   # Class to Generate kafka messages from the source data
   class EventGenerator
+    def initialize(log_level)
+      @log_controller = ArubaLogger::LogController.new(
+        'Event Generator',
+        log_level
+      )
+    end
+
     def location_from_multiple_messages(data)
       result = []
 
@@ -70,6 +82,8 @@ module Kafka
         result << json_message
       end
 
+      @log_controller.debug("location data is -> #{result}")
+
       result
     end
 
@@ -83,6 +97,8 @@ module Kafka
           'timestamp' => Time.now.to_i,
           'status' => item[:ap_status]
         }
+
+        @log_controller.debug("status data is -> #{result}")
 
         result << json_message
       end
