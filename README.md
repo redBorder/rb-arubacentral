@@ -81,3 +81,8 @@ For running the service you can pass custom config file using `-c`, for example 
 
 ## 5. License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FredBorder%2Frb-arubacentral.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FredBorder%2Frb-arubacentral?ref=badge_large)
+
+## 6. Authors
+
+* Miguel Álvarez Adsuara <malvarez@redborder.com>
+* Nils Verschaeve <nverschaeve@redborder.com>
