@@ -86,3 +86,4 @@ For running the service you can pass custom config file using `-c`, for example 
 
 * Miguel Álvarez Adsuara <malvarez@redborder.com>
 * Nils Verschaeve <nverschaeve@redborder.com>
+* David Vanhoucke <dvanhoucke@redborder.com>
