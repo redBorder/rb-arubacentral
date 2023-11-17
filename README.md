@@ -11,7 +11,9 @@ Engine`). It is developed by Aruba Networks, a Hewlett Packard Enterprise compan
 The goal of the Aruba Central service is to fetch data from Aruba Central APs and transform it into real-time actionable information to track the mobility of people connected to Aruba Central APs.
 
 ## 1. Workflow
-![img](https://i.imgur.com/8yaByNX.png)
+<p align="center">
+  <img src="https://i.imgur.com/8yaByNX.png">
+</p>
 
 The rb-arubacentral service processes data from the Aruba Central REST API. After retrieving the data, it generates two types of objects: the AP status and the mobility data. It then generates Kafka events and sends them to the Kafka broker in batches with the location data and the APs status data.
 
