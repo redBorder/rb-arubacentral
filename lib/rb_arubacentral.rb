@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 #######################################################################
 # Copyright (c) 2023 ENEO Tecnologia S.L.
 # This file is part of redBorder.
