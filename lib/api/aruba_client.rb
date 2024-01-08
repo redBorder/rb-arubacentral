@@ -55,17 +55,37 @@ module ArubaREST
 
     def make_api_request(api_endpoint)
       @log_controller.debug("Requesting data from #{api_endpoint}")
-      uri = URI.join(@gateway, api_endpoint)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == 'https')
-      request = Net::HTTP::Get.new(uri.request_uri)
-      request['Authorization'] = "Bearer #{@self_token}"
-      request['Content-Type'] = 'application/json'
-      http.request(request)
+      begin
+        uri = URI.join(@gateway, api_endpoint)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = (uri.scheme == 'https')
+        #http.use_ssl = false
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE 
+        http.read_timeout = 30
+        http.open_timeout = 10
+
+        request = Net::HTTP::Get.new(uri.request_uri)
+        request['Authorization'] = "Bearer #{@self_token}"
+        request['Content-Type'] = 'application/json'
+        @log_controller.debug("Making request to..#{api_endpoint}")
+        response = http.request(request)
+        @log_controller.debug("Request finished")
+        response
+      rescue Net::ReadTimeout
+        @log_controller.error("Timeout while waiting for a response from #{api_endpoint}")
+        return nil
+      rescue Net::OpenTimeout
+        @log_controller.error("Timeout while waiting for opening request #{api_endpoint}")
+        return nil
+      rescue StandardError => e
+        @log_controller.error("An unexpected error occurred: #{e.message}")
+        return nil
+      end
     end
 
     def fetch_data(api_endpoint)
       response = make_api_request(api_endpoint)
+      return {} unless response
 
       data = {}
       @log_controller.debug("Response status code is #{response.code}")
@@ -124,14 +144,13 @@ module ArubaREST
         @log_controller.debug("Campus info for #{campus['campus_id']} -> #{campus_info}")
         buildings = campus_info['buildings']
 
-        buildings.each do |building|
+        campus_info['buildings'].each do |building|
           building_info = fetch_building(building['building_id'])
           @log_controller.debug("Building info #{building_info}")
           floors = building_info['floors']
 
           data[:floors].push(floors)
-
-          floors.each do |floor|
+          building_info['floors'].each do |floor|
             aps = fetch_aps(floor['floor_id'])
             @log_controller.debug("Aps info #{aps}")
             data[:aps].push(aps)
@@ -148,10 +167,9 @@ module ArubaREST
 
               data[:aps_info][ap['ap_eth_mac'].downcase] = ap_info
             end
-          end
-        end
-      end
-
+          end if building_info.key?('floors')
+        end if campus_info.key?('buildings')
+      end if campuses.key?('campus')
       data
     end
 
