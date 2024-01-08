@@ -23,8 +23,6 @@ module ConfigManager
       exit 1
     end
 
-    config = YAML.load_file(config_file)
-
-    config
+    YAML.load_file(config_file)
   end
 end

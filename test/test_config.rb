@@ -13,8 +13,8 @@
 # along with redBorder. If not, see <http://www.gnu.org/licenses/>.
 #######################################################################
 
-require_relative './helpers/codecov_helper.rb'
-require_relative '../lib/helpers/aruba_config.rb'
+require_relative './helpers/codecov_helper'
+require_relative '../lib/helpers/aruba_config'
 require 'test/unit'
 require 'yaml'
 

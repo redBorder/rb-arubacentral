@@ -59,8 +59,8 @@ module ArubaREST
         uri = URI.join(@gateway, api_endpoint)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
-        #http.use_ssl = false
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE 
+        # http.use_ssl = false
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         http.read_timeout = 30
         http.open_timeout = 10
 
@@ -69,17 +69,17 @@ module ArubaREST
         request['Content-Type'] = 'application/json'
         @log_controller.debug("Making request to..#{api_endpoint}")
         response = http.request(request)
-        @log_controller.debug("Request finished")
+        @log_controller.debug('Request finished')
         response
       rescue Net::ReadTimeout
         @log_controller.error("Timeout while waiting for a response from #{api_endpoint}")
-        return nil
+        nil
       rescue Net::OpenTimeout
         @log_controller.error("Timeout while waiting for opening request #{api_endpoint}")
-        return nil
+        nil
       rescue StandardError => e
         @log_controller.error("An unexpected error occurred: #{e.message}")
-        return nil
+        nil
       end
     end
 
@@ -107,19 +107,19 @@ module ArubaREST
     end
 
     def fetch_campus(campus_id)
-      fetch_data('/visualrf_api/v1/campus/' + campus_id)
+      fetch_data("/visualrf_api/v1/campus/#{campus_id}")
     end
 
     def fetch_floor_location(floor_id)
-      fetch_data('/visualrf_api/v1/floor/' + floor_id + '/client_location')
+      fetch_data("/visualrf_api/v1/floor/#{floor_id}/client_location")
     end
 
     def fetch_building(building_id)
-      fetch_data('/visualrf_api/v1/building/' + building_id)
+      fetch_data("/visualrf_api/v1/building/#{building_id}")
     end
 
     def fetch_aps(floor_id)
-      fetch_data('/visualrf_api/v1/floor/' + floor_id + '/access_point_location')
+      fetch_data("/visualrf_api/v1/floor/#{floor_id}/access_point_location")
     end
 
     def fetch_wireless_clients
@@ -139,37 +139,43 @@ module ArubaREST
 
       campuses = fetch_all_campuses
       @log_controller.debug("Campus data #{campuses}")
-      campuses['campus'].each do |campus|
-        campus_info = fetch_campus(campus['campus_id'])
-        @log_controller.debug("Campus info for #{campus['campus_id']} -> #{campus_info}")
-        buildings = campus_info['buildings']
+      if campuses.key?('campus')
+        campuses['campus'].each do |campus|
+          campus_info = fetch_campus(campus['campus_id'])
+          @log_controller.debug("Campus info for #{campus['campus_id']} -> #{campus_info}")
+          campus_info['buildings']
 
-        campus_info['buildings'].each do |building|
-          building_info = fetch_building(building['building_id'])
-          @log_controller.debug("Building info #{building_info}")
-          floors = building_info['floors']
+          next unless campus_info.key?('buildings')
 
-          data[:floors].push(floors)
-          building_info['floors'].each do |floor|
-            aps = fetch_aps(floor['floor_id'])
-            @log_controller.debug("Aps info #{aps}")
-            data[:aps].push(aps)
+          campus_info['buildings'].each do |building|
+            building_info = fetch_building(building['building_id'])
+            @log_controller.debug("Building info #{building_info}")
+            floors = building_info['floors']
 
-            aps['access_points'].each do |ap|
-              ap_info = {
-                'floor' => floor['floor_name'],
-                'building' => building['building_name'],
-                'campus' => campus['campus_name'],
-                'name' => ap['ap_name'],
-                'reference_lat' => building['latitude'],
-                'reference_lon' => building['longitude']
-              }
+            data[:floors].push(floors)
+            next unless building_info.key?('floors')
 
-              data[:aps_info][ap['ap_eth_mac'].downcase] = ap_info
+            building_info['floors'].each do |floor|
+              aps = fetch_aps(floor['floor_id'])
+              @log_controller.debug("Aps info #{aps}")
+              data[:aps].push(aps)
+
+              aps['access_points'].each do |ap|
+                ap_info = {
+                  'floor' => floor['floor_name'],
+                  'building' => building['building_name'],
+                  'campus' => campus['campus_name'],
+                  'name' => ap['ap_name'],
+                  'reference_lat' => building['latitude'],
+                  'reference_lon' => building['longitude']
+                }
+
+                data[:aps_info][ap['ap_eth_mac'].downcase] = ap_info
+              end
             end
-          end if building_info.key?('floors')
-        end if campus_info.key?('buildings')
-      end if campuses.key?('campus')
+          end
+        end
+      end
       data
     end
 
@@ -209,12 +215,11 @@ module ArubaREST
     end
 
     def find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
-      ap_mac = if is_client_associated
-                 find_associated_device_mac(clients, client_mac_address) || find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
-               else
-                 find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
-               end
-      ap_mac
+      if is_client_associated
+        find_associated_device_mac(clients, client_mac_address) || find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
+      else
+        find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
+      end
     end
 
     def fetch_location_production_data
@@ -273,7 +278,7 @@ module ArubaREST
         access_points << {
           ap_mac_address: ap['macaddr'],
           ap_status: ap['status'] == 'Up' ? 'on' : 'off',
-          ap_client_count: @connections[ap['macaddr']].class == NilClass ? 0 : @connections[ap['macaddr']]
+          ap_client_count: @connections[ap['macaddr']].instance_of?(NilClass) ? 0 : @connections[ap['macaddr']]
         }
       end
       access_points
