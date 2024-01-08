@@ -52,8 +52,14 @@ producer = Kafka::Producer.new(
   log_level
 )
 
+mac_to_sensoruuid = {}
+mac_to_sensoruuid = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
+  flow_sensor['access_points'].each { |access_point| data[access_point.downcase] = flow_sensor['sensor_uuid'] }
+end
+
 generator = Kafka::EventGenerator.new(
   log_level
+  mac_to_sensoruuid
 )
 
 log_controller = ArubaLogger::LogController.new(

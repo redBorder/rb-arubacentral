@@ -49,11 +49,12 @@ module Kafka
 
   # Class to Generate kafka messages from the source data
   class EventGenerator
-    def initialize(log_level)
+    def initialize(log_level, mac_to_sensoruuid = [])
       @log_controller = ArubaLogger::LogController.new(
         'Event Generator',
         log_level
       )
+      @mac_to_sensoruuid = mac_to_sensoruuid
     end
 
     def location_from_multiple_messages(data)
@@ -95,7 +96,8 @@ module Kafka
           'type' => 'snmp_apMonitor',
           'client_count' => item[:ap_client_count],
           'timestamp' => Time.now.to_i,
-          'status' => item[:ap_status]
+          'status' => item[:ap_status],
+          'sensor_uuid' => @mac_to_sensoruuid[item[:ap_mac_address].downcase] || ""
         }
 
         @log_controller.debug("status data is -> #{result}")
