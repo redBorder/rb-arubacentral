@@ -19,7 +19,7 @@ require 'getopt/std'
 require_relative './api/aruba_client'
 require_relative './helpers/aruba_config'
 require_relative './helpers/aruba_logger'
-require_relative './kafka/producer.rb'
+require_relative './kafka/producer'
 
 CONFIG_FILE_PATH = 'config.yml'.freeze
 aruba_central_sensors = []

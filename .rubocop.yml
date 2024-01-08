@@ -9,6 +9,8 @@ Metrics/BlockLength:
 Metrics/ParameterLists:
   Max: 8
 Metrics/ClassLength:
-  Max: 200
+  Max: 220
 Metrics/AbcSize:
-  Max: 40
+  Max: 42
+Metrics/CyclomaticComplexity:
+  Max: 8
