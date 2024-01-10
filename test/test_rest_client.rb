@@ -13,8 +13,8 @@
 # along with redBorder. If not, see <http://www.gnu.org/licenses/>.
 #######################################################################
 
-require_relative './helpers/codecov_helper.rb'
-require_relative '../lib/api/aruba_client.rb'
+require_relative './helpers/codecov_helper'
+require_relative '../lib/api/aruba_client'
 require 'test/unit'
 
 # Test Aruba REST
@@ -33,10 +33,6 @@ class ArubaRESTClientTest < Test::Unit::TestCase
   end
 
   def test_refresh_oauth_token
-    lambda { |_gateway, _username, _password, _client_id, _client_secret, _client_customer_id|
-      { 'access_token' => 'expired_token' }
-    }
-
     @client.make_api_request('/visualrf_api/v1/campus')
 
     assert_not_equal('expired_token', @client.self_token)

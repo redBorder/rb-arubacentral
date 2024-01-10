@@ -36,8 +36,6 @@ module OAuthHelper
     JSON.parse(response.body)
   end
 
-  private_class_method
-
   def self.post_request(url, body, fields)
     uri = URI.parse(url)
     request = Net::HTTP::Post.new(uri)
@@ -49,8 +47,6 @@ module OAuthHelper
     http.use_ssl = (uri.scheme == 'https')
     http.request(request)
   end
-
-  private_class_method
 
   def self.get_cookie(cookies, key)
     value = ''

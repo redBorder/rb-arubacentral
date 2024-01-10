@@ -31,7 +31,7 @@ module ArubaLogger
       @last_log = ''
       @log_name = log_name
       @log_level = log_level
-      @logger = Logger.new(STDOUT)
+      @logger = Logger.new($stdout)
       @logger.formatter = proc do |severity, datetime, _progname, msg|
         date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
         "module=[#{@log_name}] date=[#{date_format}] severity=#{severity.ljust(5)} pid=##{Process.pid} message=#{msg}\n"
@@ -39,25 +39,25 @@ module ArubaLogger
     end
 
     def c(clr, text = nil)
-      "\x1B[" + (@color_escape[clr] || 0).to_s + 'm' + (text ? text + "\x1B[0m" : '')
+      "\e[#{@color_escape[clr] || 0}m#{text ? "#{text}\e[0m" : ''}"
     end
 
     def debug(message)
       @last_log = message
       @logger.debug(c(:blue, message)) if @log_level >= 3
-      STDOUT.flush
+      $stdout.flush
     end
 
     def error(message)
       @last_log = message
       @logger.error(c(:red, message))
-      STDOUT.flush
+      $stdout.flush
     end
 
     def info(message)
       @last_log = message
       @logger.info(c(:green, message)) if @log_level >= 2
-      STDOUT.flush
+      $stdout.flush
     end
   end
 end
