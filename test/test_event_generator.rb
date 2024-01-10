@@ -20,7 +20,7 @@ require 'test/unit'
 # Test Kafka Event Generator
 class EventGeneratorTest < Test::Unit::TestCase
   def setup
-    @event_generator = Kafka::EventGenerator.new 0
+    @event_generator = Kafka::EventGenerator.new(0, '00:00:00:00:00' => '74d81444-0589-4746-b189-7263667834ed', '00:00:00:00:01' => '74d81444-0589-4746-b189-7263667834ed')
   end
 
   def test_location_from_multiple_messages
@@ -109,14 +109,16 @@ class EventGeneratorTest < Test::Unit::TestCase
         'type' => 'snmp_apMonitor',
         'client_count' => 0,
         'timestamp' => Time.now.to_i,
-        'status' => 'on'
+        'status' => 'on',
+        'sensor_uuid' => '74d81444-0589-4746-b189-7263667834ed'
       },
       {
         'wireless_station' => '00:00:00:00:01',
         'type' => 'snmp_apMonitor',
         'client_count' => 10,
         'timestamp' => Time.now.to_i,
-        'status' => 'off'
+        'status' => 'off',
+        'sensor_uuid' => '74d81444-0589-4746-b189-7263667834ed'
       }
     ]
     actual_result = @event_generator.status_from_multiple_messages(data)
