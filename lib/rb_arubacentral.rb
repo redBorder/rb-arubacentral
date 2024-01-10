@@ -19,7 +19,7 @@ require 'getopt/std'
 require_relative './api/aruba_client'
 require_relative './helpers/aruba_config'
 require_relative './helpers/aruba_logger'
-require_relative './kafka/producer.rb'
+require_relative './kafka/producer'
 
 CONFIG_FILE_PATH = 'config.yml'.freeze
 aruba_central_sensors = []
@@ -52,13 +52,12 @@ producer = Kafka::Producer.new(
   log_level
 )
 
-mac_to_sensoruuid = {}
 mac_to_sensoruuid = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
   flow_sensor['access_points'].each { |access_point| data[access_point.downcase] = flow_sensor['sensor_uuid'] }
 end
 
 generator = Kafka::EventGenerator.new(
-  log_level
+  log_level,
   mac_to_sensoruuid
 )
 

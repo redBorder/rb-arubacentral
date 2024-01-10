@@ -96,10 +96,9 @@ module Kafka
           'type' => 'snmp_apMonitor',
           'client_count' => item[:ap_client_count],
           'timestamp' => Time.now.to_i,
-          'status' => item[:ap_status],
-          'sensor_uuid' => @mac_to_sensoruuid[item[:ap_mac_address].downcase] || ""
+          'status' => item[:ap_status]
         }
-
+        json_message['sensor_uuid'] = @mac_to_sensoruuid[item[:ap_mac_address].downcase] if @mac_to_sensoruuid.key?(item[:ap_mac_address].downcase)
         @log_controller.debug("status data is -> #{result}")
 
         result << json_message
