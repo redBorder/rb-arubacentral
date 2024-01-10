@@ -49,7 +49,7 @@ module Kafka
 
   # Class to Generate kafka messages from the source data
   class EventGenerator
-    def initialize(log_level, mac_to_sensoruuid = [])
+    def initialize(log_level, mac_to_sensoruuid = {})
       @log_controller = ArubaLogger::LogController.new(
         'Event Generator',
         log_level
