@@ -33,17 +33,19 @@ sensors = config['sensors']
 
 log_level = config['service']['log_level']
 
-sensors.each do |sensor|
-  aruba_central = ArubaREST::Client.new(
-    sensor['gateway'],
-    sensor['email'],
-    sensor['password'],
-    sensor['client_id'],
-    sensor['client_secret'],
-    sensor['customer_id'],
-    log_level
-  )
-  aruba_central_sensors.push(aruba_central)
+unless sensors.nil?
+  sensors.each do |sensor|
+    aruba_central = ArubaREST::Client.new(
+      sensor['gateway'],
+      sensor['email'],
+      sensor['password'],
+      sensor['client_id'],
+      sensor['client_secret'],
+      sensor['customer_id'],
+      log_level
+    )
+    aruba_central_sensors.push(aruba_central)
+  end
 end
 
 producer = Kafka::Producer.new(
@@ -52,8 +54,11 @@ producer = Kafka::Producer.new(
   log_level
 )
 
-mac_to_sensoruuid = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
-  flow_sensor['access_points'].each { |access_point| data[access_point.downcase] = flow_sensor['sensor_uuid'] }
+mac_to_sensoruuid = {}
+unless config['flow_sensors'].nil?
+  mac_to_sensoruuid = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
+    flow_sensor['access_points'].each { |access_point| data[access_point.downcase] = flow_sensor['sensor_uuid'] }
+  end
 end
 
 generator = Kafka::EventGenerator.new(

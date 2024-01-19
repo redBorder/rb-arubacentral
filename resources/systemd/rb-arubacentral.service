@@ -1,0 +1,12 @@
+[Unit]
+Description=rb-arubacentral module
+
+[Service]
+ExecStart=/usr/lib/rvm/bin/rvm ruby-2.7.5 do /var/rb-arubacentral/bin/rb_arubacentral.rb -c /etc/rb-arubacentral/config.yml
+Restart=always
+User=rb-arubacentral
+Type=simple
+WorkingDirectory=/var/rb-arubacentral/bin/
+
+[Install]
+WantedBy=multi-user.target
