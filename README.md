@@ -36,6 +36,7 @@ The rb-arubacentral service processes data from the Aruba Central REST API. Afte
 ### 2.3 Service
 - **sleep_time** (integer): Sleep time of service in seconds (for the main loop)
 - **log_level** (integer): Log Level (2=info) (3=debug)
+- **cache_ttl** (integer): For how much time keep data in mem before requesting to aruba API
 
 
 ### 2.4 Example
@@ -58,6 +59,7 @@ kafka:
 service:
   sleep_time: 300
   log_level: 2
+  cache_ttl: 3600
   ```
 
 ## 3. How to install?
