@@ -42,7 +42,7 @@ The rb-arubacentral service processes data from the Aruba Central REST API. Afte
 - **keys** (array): List of functions to catch result for
 
 
-### 2.4 Example
+### 2.5 Example
 
 ```yaml
 sensors:
