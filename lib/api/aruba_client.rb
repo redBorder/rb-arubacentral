@@ -23,7 +23,7 @@ require 'json'
 # Aruba REST implementation in ruby
 module ArubaREST
   # Aruba REST Client implementation for ruby
-  class Client
+  class Client # rubocop:disable Metrics/ClassLength
     attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :self_token
 
     def initialize(gateway, username, password, client_id, client_secret, client_customer_id, log_level)
@@ -110,8 +110,8 @@ module ArubaREST
       fetch_data("/visualrf_api/v1/campus/#{campus_id}")
     end
 
-    def fetch_floor_location(floor_id)
-      fetch_data("/visualrf_api/v1/floor/#{floor_id}/client_location")
+    def fetch_floor_location(floor_id, offset = 0, limit = 100)
+      fetch_data("/visualrf_api/v1/floor/#{floor_id}/client_location?offset=#{offset}&limit=#{limit}")
     end
 
     def fetch_building(building_id)
@@ -123,7 +123,18 @@ module ArubaREST
     end
 
     def fetch_wireless_clients
-      fetch_data('/monitoring/v1/clients/wireless')
+      data = {}
+      data['clients'] = []
+      offset = 0
+      wireless_clients_size = 100
+      while wireless_clients_size == 100
+        wireless_clients = fetch_data("/monitoring/v1/clients/wireless?offset=#{offset}")
+        wireless_clients_size = wireless_clients.size
+        # TODO: only keep data used (macaddr, associated_device_mac)
+        data['clients'] += wireless_clients['clients']
+        offset += 1
+      end
+      data
     end
 
     def fetch_ap_status
@@ -222,6 +233,40 @@ module ArubaREST
       end
     end
 
+    def process_floor_location_data(floor_location, clients, top)
+      data = []
+      floor_location['locations'].each do |client|
+        client_real_x = client['x']
+        client_real_y = client['y']
+        client_mac_address = client['device_mac']
+        is_client_associated = client['associated']
+
+        ap_mac = find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
+
+        @log_controller.debug("AP mac found -> #{ap_mac}")
+
+        @connections[ap_mac] ||= 0
+        @connections[ap_mac] += 1 if is_client_associated
+
+        @log_controller.debug("Connections for #{ap_mac} are -> #{@connections[ap_mac]}")
+
+        ap_info = find_ap_info(top, ap_mac, client_real_x, client_real_y)
+
+        client_real_lat, client_real_lon = ArubaMathHelper.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
+
+        data << {
+          lat: client_real_lat,
+          long: client_real_lon,
+          client_mac_address: client_mac_address,
+          ap_mac_address: ap_mac,
+          topology: "#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}",
+          associated: is_client_associated,
+          time: Time.now.utc.round(4).iso8601(3).to_s
+        }
+      end
+      data
+    end
+
     def fetch_location_production_data
       @log_controller.info('Calculating location data...')
       top = fetch_ap_top
@@ -232,40 +277,16 @@ module ArubaREST
       top[:floors].each do |floor|
         floor.each do |floor_data|
           floor_id = floor_data['floor_id']
-          floor_location = fetch_floor_location(floor_id)
-
-          floor_location['locations'].each do |client|
-            client_real_x = client['x']
-            client_real_y = client['y']
-            client_mac_address = client['device_mac']
-            is_client_associated = client['associated']
-
-            ap_mac = find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
-
-            @log_controller.debug("AP mac found -> #{ap_mac}")
-
-            @connections[ap_mac] ||= 0
-            @connections[ap_mac] += 1 if is_client_associated
-
-            @log_controller.debug("Connections for #{ap_mac} are -> #{@connections[ap_mac]}")
-
-            ap_info = find_ap_info(top, ap_mac, client_real_x, client_real_y)
-
-            client_real_lat, client_real_lon = ArubaMathHelper.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
-
-            data_to_produce << {
-              lat: client_real_lat,
-              long: client_real_lon,
-              client_mac_address: client_mac_address,
-              ap_mac_address: ap_mac,
-              topology: "#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}",
-              associated: is_client_associated,
-              time: Time.now.utc.round(4).iso8601(3).to_s
-            }
+          offset = 0
+          floor_location_size = 100
+          while floor_location_size == 100
+            floor_location = fetch_floor_location(floor_id, offset)
+            floor_location_size = floor_location['locations'].size
+            data_to_produce += process_floor_location_data(floor_location, clients, top)
+            offset += 1
           end
         end
       end
-
       data_to_produce
     end
 
