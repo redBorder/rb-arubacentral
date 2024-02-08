@@ -25,7 +25,7 @@ class ArubaCache
       if @cache.key?(key) && !expired?(key)
         @cache[key][:value]
       else
-        value = block_given? ? block.call : nil
+        value = block_given? ? yield : nil
         @cache[key] = { value: value, timestamp: Time.now, expiration: expiration } if value
         value
       end
