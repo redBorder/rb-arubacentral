@@ -126,7 +126,7 @@ module ArubaREST
       fetch_data("/visualrf_api/v1/campus/#{campus_id}", __method__.to_s)
     end
 
-    def fetch_floor_location(floor_id, limit = 100)
+    def fetch_floor_location(floor_id, offset, limit = 100)
       fetch_data("/visualrf_api/v1/floor/#{floor_id}/client_location?offset=#{offset}&limit=#{limit}", __method__.to_s)
     end
 
