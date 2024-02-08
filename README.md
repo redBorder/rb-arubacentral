@@ -67,6 +67,11 @@ kafka:
 service:
   sleep_time: 300
   log_level: 2
+flow_sensors:
+  -
+       sensor_name: MySensorName
+       sensor_uuid: 2e7241e4-12cf-4c6b-926c-5524ad537179
+       access_points: ["00:00:00:00:00:01", "00:00:00:00:00:02", "00:00:00:00:00:03"]
 cache:
   ttl:
     fetch_all_campuses: 3600
