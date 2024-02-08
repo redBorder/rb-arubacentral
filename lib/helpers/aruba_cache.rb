@@ -20,7 +20,7 @@ class ArubaCache
     @mutex = Mutex.new
   end
 
-  def fetch(key, expiration = 3600, &block)
+  def fetch(key, expiration = 3600)
     @mutex.synchronize do
       if @cache.key?(key) && !expired?(key)
         @cache[key][:value]
