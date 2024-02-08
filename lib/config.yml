@@ -15,4 +15,10 @@ kafka:
 service:
   sleep_time: 300
   log_level: 2
-  cache_ttl: 3600
+cache:
+  ttl:
+    fetch_all_campuses: 3600
+    fetch_campus: 1800
+    fetch_floor_location: 7200
+    fetch_building: 14400
+  keys: [fetch_all_campuses fetch_campus fetch_floor_location fetch_building]

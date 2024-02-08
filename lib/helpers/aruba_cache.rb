@@ -20,19 +20,37 @@ class ArubaCache
     @mutex = Mutex.new
   end
 
-  def fetch(key, expiration = 3600)
+  def fetch(key, expiration = 3600, store_in_cache = false) # rubocop:disable Style/OptionalBooleanParameter
     @mutex.synchronize do
-      if @cache.key?(key) && !expired?(key)
-        @cache[key][:value]
-      else
+      return cached_value(key, store_in_cache) if cache_contains_valid_data?(key) && !block_given?
+
+      if should_fetch_from_block?(key, store_in_cache)
         value = block_given? ? yield : nil
-        @cache[key] = { value: value, timestamp: Time.now, expiration: expiration } if value
+        cache_value(key, value, expiration) if value && store_in_cache
         value
+      else
+        cached_value(key, store_in_cache)
       end
     end
   end
 
   private
+
+  def cache_contains_valid_data?(key)
+    @cache.key?(key) && !expired?(key)
+  end
+
+  def should_fetch_from_block?(key, store_in_cache)
+    !store_in_cache || (!@cache.key?(key) || expired?(key))
+  end
+
+  def cached_value(key, _store_in_cache)
+    @cache[key][:value]
+  end
+
+  def cache_value(key, value, expiration)
+    @cache[key] = { value: value, timestamp: Time.now, expiration: expiration }
+  end
 
   def expired?(key)
     return false unless @cache.key?(key) && @cache[key].key?(:timestamp) && @cache[key].key?(:expiration)
