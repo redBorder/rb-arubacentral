@@ -20,12 +20,18 @@ require 'test/unit'
 # Test Aruba REST
 class ArubaRESTClientTest < Test::Unit::TestCase
   def setup
-    @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id', {
+    cache = {
       keys: [:test],
       ttl: {
         "test" => 3600
       }
-    }, 0)
+    }
+
+    cache = cache.each_with_object({}) do |(key, value), hash|
+      hash[key.to_s] = value.is_a?(Hash) ? value.transform_keys(&:to_s) : value
+    end
+
+    @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id', cache, 0)
   end
 
   def test_initialize
