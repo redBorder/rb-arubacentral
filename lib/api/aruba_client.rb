@@ -95,6 +95,7 @@ module ArubaREST
       rescue StandardError
         0
       end
+      @log_controller.debug("fetch data from #{cache_key}, cached[#{cache}], cache_refresh_ttl[#{cache_refresh}]")
       @cache.fetch(cache_key, cache_refresh, cache) do
         response = make_api_request(api_endpoint)
         return {} unless response
