@@ -31,6 +31,8 @@ config = ConfigManager.load_config(config_file)
 
 sensors = config['sensors']
 
+cache_ttl = config['service']['cache_ttl']
+
 log_level = config['service']['log_level']
 
 unless sensors.nil?
@@ -42,6 +44,7 @@ unless sensors.nil?
       sensor['client_id'],
       sensor['client_secret'],
       sensor['customer_id'],
+      cache_ttl,
       log_level
     )
     aruba_central_sensors.push(aruba_central)

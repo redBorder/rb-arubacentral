@@ -15,3 +15,4 @@ kafka:
 service:
   sleep_time: 300
   log_level: 2
+  cache_ttl: 3600

@@ -16,6 +16,7 @@
 require_relative '../helpers/aruba_oauth'
 require_relative '../helpers/aruba_math'
 require_relative '../helpers/aruba_logger'
+require_relative '../helpers/aruba_cache'
 require 'net/http'
 require 'time'
 require 'json'
@@ -24,16 +25,18 @@ require 'json'
 module ArubaREST
   # Aruba REST Client implementation for ruby
   class Client
-    attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :self_token
+    attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :cache_ttl, :self_token
 
-    def initialize(gateway, username, password, client_id, client_secret, client_customer_id, log_level)
+    def initialize(gateway, username, password, client_id, client_secret, client_customer_id, cache_ttl, log_level)
       @gateway = gateway
       @username = username
       @password = password
       @client_id = client_id
       @client_secret = client_secret
       @client_customer_id = client_customer_id
+      @cache_ttl = cache_ttl
       @connections = {}
+      @cache = ArubaCache.new
       @log_controller = ArubaLogger::LogController.new(
         'ArubaREST',
         log_level
@@ -84,22 +87,28 @@ module ArubaREST
     end
 
     def fetch_data(api_endpoint)
-      response = make_api_request(api_endpoint)
-      return {} unless response
+      cache_key = "api_response:#{api_endpoint}"
 
-      data = {}
-      @log_controller.debug("Response status code is #{response.code}")
-      case response.code
-      when '200'
-        data = JSON.parse(response.body)
-      when '401'
-        @log_controller.debug('401, refreshing token')
-        refresh_oauth_token
+      @cache.fetch(cache_key, @cache_ttl) do
         response = make_api_request(api_endpoint)
-        @log_controller.debug('Re-requesting data...')
-        data = JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
+        return {} unless response
+
+        data = {}
+        @log_controller.debug("Response status code is #{response.code}")
+
+        case response.code
+        when '200'
+          data = JSON.parse(response.body)
+        when '401'
+          @log_controller.debug('401, refreshing token')
+          refresh_oauth_token
+          response = make_api_request(api_endpoint)
+          @log_controller.debug('Re-requesting data...')
+          data = JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
+        end
+
+        data
       end
-      data
     end
 
     def fetch_all_campuses
