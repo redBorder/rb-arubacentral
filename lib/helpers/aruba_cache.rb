@@ -13,8 +13,6 @@
 # along with redBorder. If not, see <http://www.gnu.org/licenses/>.
 #######################################################################
 
-require 'thread'
-
 # Aruba Cache class to store common requested data in-mem
 class ArubaCache
   def initialize
