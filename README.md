@@ -37,12 +37,17 @@ The rb-arubacentral service processes data from the Aruba Central REST API. Afte
 - **sleep_time** (integer): Sleep time of service in seconds (for the main loop)
 - **log_level** (integer): Log Level (2=info) (3=debug)
 
-### 2.4 Cache
+### 2.4 Flow Sensors
+- **sensor_name** (string): Name of the sensor
+- **sensor_uuid** (string): UUID v4 of the sensor
+- **access_points** (array): Access points of the flow sensor
+
+### 2.5 Cache
 - **ttl** (hash): Cache ttl based on function method when requesting to aruba central 
 - **keys** (array): List of functions to catch result for
 
 
-### 2.5 Example
+### 2.6 Example
 
 ```yaml
 sensors:
