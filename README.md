@@ -12,13 +12,21 @@ The goal of the Aruba Central service is to fetch data from Aruba Central APs an
 
 ## 1. Workflow
 <p align="center">
-  <img src="https://i.imgur.com/8yaByNX.png">
+  <img src="./assets/workflow.png">
 </p>
 
 The rb-arubacentral service processes data from the Aruba Central REST API. After retrieving the data, it generates two types of objects: the AP status and the mobility data. It then generates Kafka events and sends them to the Kafka broker in batches with the location data and the APs status data.
 
-## 2. Config
-### 2.1 Sensors
+## 2. Caching
+<p align="center">
+  <img src="./assets/cache.png">
+</p>
+
+The rb-arubacentral can cache data for common requests. This is done to reduce API calls to the Aruba Central REST. The service first checks if the request is in the cache list. If it's not, then it will call the Aruba Central service as usual. If it's in the list, it will retrieve the data from the cache. Subsequently, it will read from the cache until it expires and then refresh its cache again by calling the REST.
+
+
+## 3. Config
+### 3.1 Sensors
 - **sensor_name** (string): Name of the aruba central sensor
 - **gateway** (string): Where the gather the information
 - **email** (string): Aruba Central Email
@@ -27,27 +35,27 @@ The rb-arubacentral service processes data from the Aruba Central REST API. Afte
 - **client_secret** (string): Aruba Central Client Secret
 - **customer_id** (string): Aruba Central Customer ID
 
-### 2.2 Kafka
+### 3.2 Kafka
 - **broker** (string): Kafka Broker
 - **producer_name** (string): Kafka Producer Name
 - **location_topic** (string): Kafka Location Topic
 - **status_topic** (string): Kafka Status Topic
 
-### 2.3 Service
+### 3.3 Service
 - **sleep_time** (integer): Sleep time of service in seconds (for the main loop)
 - **log_level** (integer): Log Level (2=info) (3=debug)
 
-### 2.4 Flow Sensors
+### 3.4 Flow Sensors
 - **sensor_name** (string): Name of the sensor
 - **sensor_uuid** (string): UUID v4 of the sensor
 - **access_points** (array): Access points of the flow sensor
 
-### 2.5 Cache
+### 3.5 Cache
 - **ttl** (hash): Cache ttl based on function method when requesting to aruba central 
 - **keys** (array): List of functions to catch result for
 
 
-### 2.6 Example
+### 3.6 Example
 
 ```yaml
 sensors:
@@ -81,7 +89,7 @@ cache:
   keys: [fetch_all_campuses fetch_campus fetch_floor_location fetch_building]
   ```
 
-## 3. How to install?
+## 4. How to install?
 
 The rb-arubacentral has been tested on ruby `2.1.2` and ruby `2.1.9`, you can install and run the program executing the following instructions
 
@@ -90,11 +98,11 @@ cd rb-arubacentral
 rvm install 2.1.2
 bundle install
 ```
-### 3.1 Running
+### 4.1 Running
 
 For running the service you can pass custom config file using `-c`, for example `ruby ./lib/rb_arubacentral.rb -c /path/to/my/config.yml` or you can just run `ruby ./lib/rb_arubacentral.rb` and it will take the default config file.
 
-## 4. Contribute
+## 5. Contribute
 
 * Create a fork of the project
 * Create a branch `bugfix_myfix`, `feature_myfeature`, `improvement_myimprovement`
