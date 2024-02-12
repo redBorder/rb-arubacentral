@@ -20,7 +20,9 @@ require 'test/unit'
 # Test Aruba REST
 class ArubaRESTClientTest < Test::Unit::TestCase
   def setup
-    @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id', 0)
+    cache = {"keys"=>[:test], "ttl"=>{"test"=>3600}}
+
+    @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id', cache, 0)
   end
 
   def test_initialize
@@ -39,8 +41,9 @@ class ArubaRESTClientTest < Test::Unit::TestCase
   end
 
   def test_fetch_data
-    data = @client.fetch_data('/visualrf_api/v1/campus')
-
+    method = __method__.to_s
+    data = @client.fetch_data('/visualrf_api/v1/campus', method)
+    assert_equal("test_fetch_data", method)
     assert_equal({}, data)
   end
 end

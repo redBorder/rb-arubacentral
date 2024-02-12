@@ -16,6 +16,7 @@
 require_relative '../helpers/aruba_oauth'
 require_relative '../helpers/aruba_math'
 require_relative '../helpers/aruba_logger'
+require_relative '../helpers/aruba_cache'
 require 'net/http'
 require 'time'
 require 'json'
@@ -24,16 +25,19 @@ require 'json'
 module ArubaREST
   # Aruba REST Client implementation for ruby
   class Client # rubocop:disable Metrics/ClassLength
-    attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :self_token
+    attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :cache, :self_token
 
-    def initialize(gateway, username, password, client_id, client_secret, client_customer_id, log_level)
+    def initialize(gateway, username, password, client_id, client_secret, client_customer_id, cache, log_level)
       @gateway = gateway
       @username = username
       @password = password
       @client_id = client_id
       @client_secret = client_secret
       @client_customer_id = client_customer_id
+      @cache_ttl = cache['ttl']
+      @cache_keys = cache['keys']
       @connections = {}
+      @cache = ArubaCache.new
       @log_controller = ArubaLogger::LogController.new(
         'ArubaREST',
         log_level
@@ -83,43 +87,55 @@ module ArubaREST
       end
     end
 
-    def fetch_data(api_endpoint)
-      response = make_api_request(api_endpoint)
-      return {} unless response
-
-      data = {}
-      @log_controller.debug("Response status code is #{response.code}")
-      case response.code
-      when '200'
-        data = JSON.parse(response.body)
-      when '401'
-        @log_controller.debug('401, refreshing token')
-        refresh_oauth_token
-        response = make_api_request(api_endpoint)
-        @log_controller.debug('Re-requesting data...')
-        data = JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
+    def fetch_data(api_endpoint, cache_name)
+      cache_key = "api_response:#{api_endpoint}"
+      cache = @cache_keys.include? cache_name
+      cache_refresh = begin
+        @cache_ttl[cache_name.to_sym].to_i
+      rescue StandardError
+        0
       end
-      data
+      @log_controller.debug("fetch data from #{cache_key}, cached[#{cache}], cache_refresh_ttl[#{cache_refresh}]")
+      @cache.fetch(cache_key, cache_refresh, cache) do
+        response = make_api_request(api_endpoint)
+        return {} unless response
+
+        data = {}
+        @log_controller.debug("Response status code is #{response.code}")
+
+        case response.code
+        when '200'
+          data = JSON.parse(response.body)
+        when '401'
+          @log_controller.debug('401, refreshing token')
+          refresh_oauth_token
+          response = make_api_request(api_endpoint)
+          @log_controller.debug('Re-requesting data...')
+          data = JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
+        end
+
+        data
+      end
     end
 
     def fetch_all_campuses
-      fetch_data('/visualrf_api/v1/campus')
+      fetch_data('/visualrf_api/v1/campus', __method__.to_s)
     end
 
     def fetch_campus(campus_id)
-      fetch_data("/visualrf_api/v1/campus/#{campus_id}")
+      fetch_data("/visualrf_api/v1/campus/#{campus_id}", __method__.to_s)
     end
 
     def fetch_floor_location(floor_id, offset = 0, limit = 100)
-      fetch_data("/visualrf_api/v1/floor/#{floor_id}/client_location?offset=#{offset}&limit=#{limit}")
+      fetch_data("/visualrf_api/v1/floor/#{floor_id}/client_location?offset=#{offset}&limit=#{limit}", __method__.to_s)
     end
 
     def fetch_building(building_id)
-      fetch_data("/visualrf_api/v1/building/#{building_id}")
+      fetch_data("/visualrf_api/v1/building/#{building_id}", __method__.to_s)
     end
 
     def fetch_aps(floor_id)
-      fetch_data("/visualrf_api/v1/floor/#{floor_id}/access_point_location")
+      fetch_data("/visualrf_api/v1/floor/#{floor_id}/access_point_location", __method__.to_s)
     end
 
     def fetch_wireless_clients
@@ -128,7 +144,7 @@ module ArubaREST
       offset = 0
       wireless_clients_size = 100
       while wireless_clients_size == 100
-        wireless_clients = fetch_data("/monitoring/v1/clients/wireless?offset=#{offset}")
+        wireless_clients = fetch_data("/monitoring/v1/clients/wireless?offset=#{offset}", __method__.to_s)
         wireless_clients_size = wireless_clients.size
         # TODO: only keep data used (macaddr, associated_device_mac)
         data['clients'] += wireless_clients['clients']
@@ -138,7 +154,7 @@ module ArubaREST
     end
 
     def fetch_ap_status
-      fetch_data('/monitoring/v2/aps')
+      fetch_data('/monitoring/v2/aps', __method__.to_s)
     end
 
     def fetch_ap_top
