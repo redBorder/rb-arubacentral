@@ -49,12 +49,12 @@ module Kafka
 
   # Class to Generate kafka messages from the source data
   class EventGenerator
-    def initialize(log_level, mac_to_sensoruuid = {})
+    def initialize(log_level, aps_enrichment = {})
       @log_controller = ArubaLogger::LogController.new(
         'Event Generator',
         log_level
       )
-      @mac_to_sensoruuid = mac_to_sensoruuid
+      @aps_enrichment = aps_enrichment
     end
 
     def location_from_multiple_messages(data)
@@ -98,7 +98,13 @@ module Kafka
           'timestamp' => Time.now.to_i,
           'status' => item[:ap_status]
         }
-        json_message['sensor_uuid'] = @mac_to_sensoruuid[item[:ap_mac_address].downcase] if @mac_to_sensoruuid.key?(item[:ap_mac_address].downcase)
+        # Enrich the json with the elements of @aps_enrichment
+        if @aps_enrichment.key?(item[:ap_mac_address].downcase)
+          @aps_enrichment[item[:ap_mac_address].downcase].each do |k,v| 
+            json_message[k] = v
+          end
+        end
+
         @log_controller.debug("status data is -> #{result}")
 
         result << json_message
