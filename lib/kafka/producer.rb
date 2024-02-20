@@ -100,7 +100,7 @@ module Kafka
         }
         # Enrich the json with the elements of @aps_enrichment
         if @aps_enrichment.key?(item[:ap_mac_address].downcase)
-          @aps_enrichment[item[:ap_mac_address].downcase].each do |k,v| 
+          @aps_enrichment[item[:ap_mac_address].downcase].each do |k, v|
             json_message[k] = v
           end
         end
