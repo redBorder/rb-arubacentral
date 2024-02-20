@@ -60,7 +60,7 @@ producer = Kafka::Producer.new(
 aps_enrichment = {}
 if config['flow_sensors']
   aps_enrichment = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
-    flow_sensor['access_points'].each do |access_point| 
+    flow_sensor['access_points'].each do |access_point|
       data[access_point.downcase] = { 'sensor_uuid' => flow_sensor['sensor_uuid'], 'sensor_name' => flow_sensor['sensor_name'] }
     end
   end
