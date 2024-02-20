@@ -211,6 +211,8 @@ module ArubaREST
       closest_distance = nil
       data[:aps].each do |aps|
         aps['access_points'].each do |ap|
+          next unless ap['status'] == 'Up'
+
           ap_x = ap['x']
           ap_y = ap['y']
           distance = ArubaMathHelper.calculate_distance(xpos, ypos, ap_x, ap_y)
