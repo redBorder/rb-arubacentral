@@ -57,16 +57,18 @@ producer = Kafka::Producer.new(
   log_level
 )
 
-mac_to_sensoruuid = {}
-unless config['flow_sensors'].nil?
-  mac_to_sensoruuid = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
-    flow_sensor['access_points'].each { |access_point| data[access_point.downcase] = flow_sensor['sensor_uuid'] }
+aps_enrichment = {}
+if config['flow_sensors']
+  aps_enrichment = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
+    flow_sensor['access_points'].each do |access_point|
+      data[access_point.downcase] = { 'sensor_uuid' => flow_sensor['sensor_uuid'], 'sensor_name' => flow_sensor['sensor_name'] }
+    end
   end
 end
 
 generator = Kafka::EventGenerator.new(
   log_level,
-  mac_to_sensoruuid
+  aps_enrichment
 )
 
 log_controller = ArubaLogger::LogController.new(
