@@ -216,7 +216,6 @@ module ArubaREST
       closest_distance = nil
       data[:aps].each do |aps|
         aps['access_points'].each do |ap|
-          @log_controller.info(@aps)
           next unless @aps[ap['ap_eth_mac'].downcase] == 'Up'
 
           ap_x = ap['x']
