@@ -80,8 +80,8 @@ loop do
   aruba_central_sensors.each do |aruba_central_sensor|
     begin
       log_controller.info("Processing sensor #{aruba_central_sensor}")
-      location_data = generator.location_from_multiple_messages(aruba_central_sensor.fetch_location_production_data)
       status_data = generator.status_from_multiple_messages(aruba_central_sensor.fetch_ap_status_production_data)
+      location_data = generator.location_from_multiple_messages(aruba_central_sensor.fetch_location_production_data)
       producer.send_kafka_multiple_msgs(location_data, config['kafka']['location_topic'])
       producer.send_kafka_multiple_msgs(status_data, config['kafka']['status_topic'])
     rescue StandardError => e

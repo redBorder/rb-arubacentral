@@ -37,6 +37,7 @@ module ArubaREST
       @cache_ttl = cache['ttl']
       @cache_keys = cache['keys']
       @connections = {}
+      @aps = {}
       @cache = ArubaCache.new
       @log_controller = ArubaLogger::LogController.new(
         'ArubaREST',
@@ -116,6 +117,10 @@ module ArubaREST
 
         data
       end
+    end
+
+    def update_ap_status(mac_add, ap_status)
+      @aps[mac_add.downcase] = ap_status
     end
 
     def fetch_all_campuses
@@ -211,7 +216,7 @@ module ArubaREST
       closest_distance = nil
       data[:aps].each do |aps|
         aps['access_points'].each do |ap|
-          next unless ap['status'] == 'Up'
+          next unless @aps[ap['ap_eth_mac'].downcase] == 'Up'
 
           ap_x = ap['x']
           ap_y = ap['y']
@@ -319,6 +324,7 @@ module ArubaREST
           ap_status: ap['status'] == 'Up' ? 'on' : 'off',
           ap_client_count: @connections[ap['macaddr']].instance_of?(NilClass) ? 0 : @connections[ap['macaddr']]
         }
+        update_ap_status(ap['macaddr'], ap['status'])
       end
       access_points
     end
