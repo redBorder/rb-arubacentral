@@ -270,6 +270,7 @@ module ArubaREST
 
     def process_floor_location_data(floor_location, clients, top)
       data = []
+      calculated_clients = []
       floor_location['locations'].each do |client|
         client_real_x = client['x']
         client_real_y = client['y']
@@ -289,6 +290,8 @@ module ArubaREST
 
         client_real_lat, client_real_lon = ArubaMathHelper.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
 
+        calculated_clients.push(client_mac_address.downcase)
+
         data << {
           lat: client_real_lat,
           long: client_real_lon,
@@ -300,13 +303,14 @@ module ArubaREST
         }
       end
 
-      data += process_unkown_pos_associated_devices(top, clients)
+      data += process_unkown_pos_associated_devices(top, clients, calculated_clients)
       data
     end
 
-    def process_unkown_pos_associated_devices(top, clients)
+    def process_unkown_pos_associated_devices(top, clients, calculated_clients)
       data = []
       clients['clients'].each do |client|
+        next if calculated_clients.include? client['macaddr'].downcase
         ap = find_ap_based_on_mac(top, client['associated_device_mac'])
         ap_info = ap[0]
         ap_coords = ap[1]
