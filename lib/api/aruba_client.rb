@@ -16,12 +16,13 @@
 require_relative '../helpers/aruba_oauth'
 require_relative '../helpers/aruba_math'
 require_relative '../helpers/aruba_logger'
-require_relative '../helpers/aruba_cache'
+require 'easycache'
 require 'net/http'
 require 'time'
 require 'json'
 
 # Aruba REST implementation in ruby
+# TODO: Refactor this class in the future
 module ArubaREST
   # Aruba REST Client implementation for ruby
   class Client # rubocop:disable Metrics/ClassLength
@@ -38,7 +39,7 @@ module ArubaREST
       @cache_keys = cache['keys']
       @connections = {}
       @aps = {}
-      @cache = ArubaCache.new
+      @cache = EasyCache.new
       @log_controller = ArubaLogger::LogController.new(
         'ArubaREST',
         log_level
@@ -211,6 +212,17 @@ module ArubaREST
       data
     end
 
+    def find_ap_based_on_mac(data, mac)
+      real_ap = nil
+      data[:aps].each do |aps|
+        aps['access_points'].each do |ap|
+          ap_mac = ap['ap_eth_mac'].downcase
+          real_ap = [data[:aps_info][ap_mac], ap] if ap_mac == mac
+        end
+      end
+      real_ap
+    end
+
     def find_closest_ap(data, xpos, ypos)
       closest_ap = nil
       closest_distance = nil
@@ -284,6 +296,28 @@ module ArubaREST
           ap_mac_address: ap_mac,
           topology: "#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}",
           associated: is_client_associated,
+          time: Time.now.utc.round(4).iso8601(3).to_s
+        }
+      end
+
+      data += process_unkown_pos_associated_devices(top, clients)
+      data
+    end
+
+    def process_unkown_pos_associated_devices(top, clients)
+      data = []
+      clients['clients'].each do |client|
+        ap = find_ap_based_on_mac(top, client['associated_device_mac'])
+        ap_info = ap[0]
+        ap_coords = ap[1]
+        ap_real_lat, ap_real_lon = ArubaMathHelper.move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
+        data << {
+          lat: ap_real_lat,
+          long: ap_real_lon,
+          client_mac_address: client['macaddr'],
+          ap_mac_address: client['associated_device_mac'],
+          topology: "#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}",
+          associated: true,
           time: Time.now.utc.round(4).iso8601(3).to_s
         }
       end
