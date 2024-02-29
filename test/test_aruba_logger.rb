@@ -14,7 +14,7 @@
 #######################################################################
 
 require_relative './helpers/codecov_helper'
-require_relative '../lib/helpers/aruba_logger'
+require_relative '../bin/helpers/aruba_logger'
 require 'test/unit'
 
 # Test Logger Helpers

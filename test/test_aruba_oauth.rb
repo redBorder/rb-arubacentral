@@ -14,7 +14,7 @@
 #######################################################################
 
 require_relative './helpers/codecov_helper'
-require_relative '../lib/helpers/aruba_oauth'
+require_relative '../bin/helpers/aruba_oauth'
 require 'test/unit'
 
 # Test Oauth Service

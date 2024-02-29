@@ -14,7 +14,7 @@
 #######################################################################
 
 require_relative './helpers/codecov_helper'
-require_relative '../lib/kafka/producer'
+require_relative '../bin/kafka/producer'
 require 'test/unit'
 
 # Test Kafka Event Generator

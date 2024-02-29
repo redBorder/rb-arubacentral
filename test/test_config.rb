@@ -14,14 +14,14 @@
 #######################################################################
 
 require_relative './helpers/codecov_helper'
-require_relative '../lib/helpers/aruba_config'
+require_relative '../bin/helpers/aruba_config'
 require 'test/unit'
 require 'yaml'
 
 # Test Config Manager
 class ConfigManagerTest < Test::Unit::TestCase
   def setup
-    @config_file = './lib/config.yml'
+    @config_file = './bin/config.yml'
   end
 
   def test_load_config_with_valid_config_file
