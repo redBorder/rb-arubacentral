@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #######################################################################
 # Copyright (c) 2023 ENEO Tecnologia S.L.
 # This file is part of redBorder.
@@ -28,10 +30,12 @@ module OAuthHelper
     csrf_token = OAuthHelper.get_cookie(cookies, 'csrftoken')
     auth_code_url = "#{endpoint}/oauth2/authorize/central/api/?client_id=#{client_id}&response_type=code&scope=read"
     customer_id_params = { 'customer_id' => customer_id }
-    response = post_request(auth_code_url, customer_id_params, 'X-CSRF-Token' => csrf_token, 'Cookie' => "session=#{session}")
+    response = post_request(auth_code_url, customer_id_params, 'X-CSRF-Token' => csrf_token,
+                                                               'Cookie' => "session=#{session}")
     auth_code = JSON.parse(response.body)['auth_code']
     token_url = "#{endpoint}/oauth2/token"
-    token_body = { 'client_id' => client_id, 'client_secret' => client_secret, 'grant_type' => 'authorization_code', 'code' => auth_code }
+    token_body = { 'client_id' => client_id, 'client_secret' => client_secret, 'grant_type' => 'authorization_code',
+                   'code' => auth_code }
     response = post_request(token_url, token_body, {})
     JSON.parse(response.body)
   end

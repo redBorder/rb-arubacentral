@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 #######################################################################
 # Copyright (c) 2023 ENEO Tecnologia S.L.
 # This file is part of redBorder.
@@ -21,7 +23,7 @@ require_relative './helpers/aruba_config'
 require_relative './helpers/aruba_logger'
 require_relative './kafka/producer'
 
-CONFIG_FILE_PATH = 'config.yml'.freeze
+CONFIG_FILE_PATH = 'config.yml'
 aruba_central_sensors = []
 
 opt = Getopt::Std.getopts('hc:')
@@ -35,20 +37,18 @@ cache = config['cache']
 
 log_level = config['service']['log_level']
 
-unless sensors.nil?
-  sensors.each do |sensor|
-    aruba_central = ArubaREST::Client.new(
-      sensor['gateway'],
-      sensor['email'],
-      sensor['password'],
-      sensor['client_id'],
-      sensor['client_secret'],
-      sensor['customer_id'],
-      cache,
-      log_level
-    )
-    aruba_central_sensors.push(aruba_central)
-  end
+sensors&.each do |sensor|
+  aruba_central = ArubaREST::Client.new(
+    sensor['gateway'],
+    sensor['email'],
+    sensor['password'],
+    sensor['client_id'],
+    sensor['client_secret'],
+    sensor['customer_id'],
+    cache,
+    log_level
+  )
+  aruba_central_sensors.push(aruba_central)
 end
 
 producer = Kafka::Producer.new(
@@ -61,7 +61,8 @@ aps_enrichment = {}
 if config['flow_sensors']
   aps_enrichment = config['flow_sensors'].each_with_object({}) do |flow_sensor, data|
     flow_sensor['access_points'].each do |access_point|
-      data[access_point.downcase] = { 'sensor_uuid' => flow_sensor['sensor_uuid'], 'sensor_name' => flow_sensor['sensor_name'] }
+      data[access_point.downcase] =
+        { 'sensor_uuid' => flow_sensor['sensor_uuid'], 'sensor_name' => flow_sensor['sensor_name'] }
     end
   end
 end
@@ -78,16 +79,14 @@ log_controller = ArubaLogger::LogController.new(
 
 loop do
   aruba_central_sensors.each do |aruba_central_sensor|
-    begin
-      log_controller.info("Processing sensor #{aruba_central_sensor}")
-      status_data = generator.status_from_multiple_messages(aruba_central_sensor.fetch_ap_status_production_data)
-      location_data = generator.location_from_multiple_messages(aruba_central_sensor.fetch_location_production_data)
-      producer.send_kafka_multiple_msgs(location_data, config['kafka']['location_topic'])
-      producer.send_kafka_multiple_msgs(status_data, config['kafka']['status_topic'])
-    rescue StandardError => e
-      log_controller.error("There was an error while proccesing sensor #{aruba_central_sensor} : #{e.message}")
-      log_controller.error("Trace: #{e.backtrace.join("\n")}")
-    end
+    log_controller.info("Processing sensor #{aruba_central_sensor}")
+    status_data = generator.status_from_multiple_messages(aruba_central_sensor.fetch_ap_status_production_data)
+    location_data = generator.location_from_multiple_messages(aruba_central_sensor.fetch_location_production_data)
+    producer.send_kafka_multiple_msgs(location_data, config['kafka']['location_topic'])
+    producer.send_kafka_multiple_msgs(status_data, config['kafka']['status_topic'])
+  rescue StandardError => e
+    log_controller.error("There was an error while proccesing sensor #{aruba_central_sensor} : #{e.message}")
+    log_controller.error("Trace: #{e.backtrace.join("\n")}")
   end
   sleep(config['service']['sleep_time'])
 end

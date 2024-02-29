@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #######################################################################
 # Copyright (c) 2023 ENEO Tecnologia S.L.
 # This file is part of redBorder.
