@@ -17,10 +17,6 @@
 
 Dir["../helpers/*.rb"].each {|file| require_relative file }
 
-require 'easycache'
-require 'time'
-require 'json'
-
 module ArubaREST
   class Client
     include ArubaBuilder
