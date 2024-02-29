@@ -15,6 +15,7 @@
 # along with redBorder. If not, see <http://www.gnu.org/licenses/>.
 #######################################################################
 
+require 'easycache'
 require 'net/http'
 require 'uri'
 require 'json'
