@@ -28,7 +28,6 @@ module ArubaREST
   # Aruba REST Client implementation for ruby
   class Client # rubocop:disable Metrics/ClassLength
     include ArubaBuilder
-    include ArubaMathHelper
     include ArubaLogger
 
     attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :cache, :self_token
@@ -237,7 +236,7 @@ module ArubaREST
 
           ap_x = ap['x']
           ap_y = ap['y']
-          distance = calculate_distance(xpos, ypos, ap_x, ap_y)
+          distance = ArubaMathHelper.calculate_distance(xpos, ypos, ap_x, ap_y)
 
           if closest_distance.nil? || distance < closest_distance
             closest_ap = ap
@@ -293,7 +292,7 @@ module ArubaREST
 
         ap_info = find_ap_info(top, ap_mac, client_real_x, client_real_y)
 
-        client_real_lat, client_real_lon = move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
+        client_real_lat, client_real_lon = ArubaLogger.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
 
         calculated_clients.push(client_mac_address.downcase)
 
@@ -320,7 +319,7 @@ module ArubaREST
         ap = find_ap_based_on_mac(top, client['associated_device_mac'])
         ap_info = ap[0]
         ap_coords = ap[1]
-        ap_real_lat, ap_real_lon = move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
+        ap_real_lat, ap_real_lon = ArubaLogger.move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
         data << build_client_data do |builder|
           builder.write_lat(ap_real_lat)
           builder.write_long(ap_real_lon)
