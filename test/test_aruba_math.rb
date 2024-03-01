@@ -14,7 +14,7 @@
 #######################################################################
 
 require_relative './helpers/codecov_helper'
-require_relative '../lib/helpers/aruba_math'
+require_relative '../bin/helpers/aruba_math'
 require 'test/unit'
 
 # Test Math Helpers

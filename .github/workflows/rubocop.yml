@@ -18,4 +18,4 @@ jobs:
         run: sudo gem install rubocop -v 1.59.0
 
       - name: Run RuboCop
-        run: rubocop ./lib
+        run: rubocop ./bin

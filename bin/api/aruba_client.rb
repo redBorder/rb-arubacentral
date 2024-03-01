@@ -16,15 +16,20 @@
 require_relative '../helpers/aruba_oauth'
 require_relative '../helpers/aruba_math'
 require_relative '../helpers/aruba_logger'
-require_relative '../helpers/aruba_cache'
+require_relative '../helpers/aruba_builder'
+require 'easycache'
 require 'net/http'
 require 'time'
 require 'json'
 
 # Aruba REST implementation in ruby
+# TODO: Refactor this class in the future
 module ArubaREST
   # Aruba REST Client implementation for ruby
   class Client # rubocop:disable Metrics/ClassLength
+    include ArubaBuilder
+    include ArubaLogger
+
     attr_accessor :gateway, :username, :password, :client_id, :client_secret, :client_customer_id, :cache, :self_token
 
     def initialize(gateway, username, password, client_id, client_secret, client_customer_id, cache, log_level)
@@ -38,8 +43,8 @@ module ArubaREST
       @cache_keys = cache['keys']
       @connections = {}
       @aps = {}
-      @cache = ArubaCache.new
-      @log_controller = ArubaLogger::LogController.new(
+      @cache = EasyCache.new
+      @log_controller = LogController.new(
         'ArubaREST',
         log_level
       )
@@ -211,6 +216,17 @@ module ArubaREST
       data
     end
 
+    def find_ap_based_on_mac(data, mac)
+      real_ap = nil
+      data[:aps].each do |aps|
+        aps['access_points'].each do |ap|
+          ap_mac = ap['ap_eth_mac'].downcase
+          real_ap = [data[:aps_info][ap_mac], ap] if ap_mac == mac
+        end
+      end
+      real_ap
+    end
+
     def find_closest_ap(data, xpos, ypos)
       closest_ap = nil
       closest_distance = nil
@@ -258,6 +274,7 @@ module ArubaREST
 
     def process_floor_location_data(floor_location, clients, top)
       data = []
+      calculated_clients = []
       floor_location['locations'].each do |client|
         client_real_x = client['x']
         client_real_y = client['y']
@@ -275,17 +292,43 @@ module ArubaREST
 
         ap_info = find_ap_info(top, ap_mac, client_real_x, client_real_y)
 
-        client_real_lat, client_real_lon = ArubaMathHelper.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
+        client_real_lat, client_real_lon = ArubaLogger.move_coordinates_meters(client_real_x, -client_real_y, ap_info['reference_lat'], ap_info['reference_lon'])
 
-        data << {
-          lat: client_real_lat,
-          long: client_real_lon,
-          client_mac_address: client_mac_address,
-          ap_mac_address: ap_mac,
-          topology: "#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}",
-          associated: is_client_associated,
-          time: Time.now.utc.round(4).iso8601(3).to_s
-        }
+        calculated_clients.push(client_mac_address.downcase)
+
+        data << build_client_data do |builder|
+          builder.write_lat(client_real_lat)
+          builder.write_long(client_real_lon)
+          builder.write_mac_address(client_mac_address)
+          builder.write_ap_mac_address(ap_mac)
+          builder.write_topology("#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}")
+          builder.write_associated(is_client_associated)
+          builder.write_time(Time.now.utc.round(4).iso8601(3).to_s)
+        end
+      end
+
+      data += process_unkown_pos_associated_devices(top, clients, calculated_clients)
+      data
+    end
+
+    def process_unkown_pos_associated_devices(top, clients, calculated_clients)
+      data = []
+      clients['clients'].each do |client|
+        next if calculated_clients.include? client['macaddr'].downcase
+
+        ap = find_ap_based_on_mac(top, client['associated_device_mac'])
+        ap_info = ap[0]
+        ap_coords = ap[1]
+        ap_real_lat, ap_real_lon = ArubaLogger.move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
+        data << build_client_data do |builder|
+          builder.write_lat(ap_real_lat)
+          builder.write_long(ap_real_lon)
+          builder.write_mac_address(client['macaddr'])
+          builder.write_ap_mac_address(client['associated_device_mac'])
+          builder.write_topology("#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}")
+          builder.write_associated(true)
+          builder.write_time(Time.now.utc.round(4).iso8601(3).to_s)
+        end
       end
       data
     end

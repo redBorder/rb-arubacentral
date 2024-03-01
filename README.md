@@ -100,7 +100,7 @@ bundle install
 ```
 ### 4.1 Running
 
-For running the service you can pass custom config file using `-c`, for example `ruby ./lib/rb_arubacentral.rb -c /path/to/my/config.yml` or you can just run `ruby ./lib/rb_arubacentral.rb` and it will take the default config file.
+For running the service you can pass custom config file using `-c`, for example `ruby ./bin/rb_arubacentral.rb -c /path/to/my/config.yml` or you can just run `ruby ./bin/rb_arubacentral.rb` and it will take the default config file.
 
 ## 5. Contribute
 

@@ -14,7 +14,7 @@
 #######################################################################
 
 require_relative './helpers/codecov_helper'
-require_relative '../lib/api/aruba_client'
+require_relative '../bin/api/aruba_client'
 require 'test/unit'
 
 # Test Aruba REST
