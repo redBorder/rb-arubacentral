@@ -24,13 +24,14 @@ install -D -m 644 resources/systemd/%{name}.service %{buildroot}/usr/lib/systemd
 mkdir -p %{buildroot}/var/%{name}/bin/api
 mkdir -p %{buildroot}/var/%{name}/bin/helpers
 mkdir -p %{buildroot}/var/%{name}/bin/kafka
-install -D -m 755 lib/rb_arubacentral.rb %{buildroot}/var/rb-arubacentral/bin/rb_arubacentral.rb
-install -D -m 755 lib/api/aruba_client.rb %{buildroot}/var/rb-arubacentral/bin/api/aruba_client.rb
-install -D -m 755 lib/helpers/aruba_config.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_config.rb
-install -D -m 755 lib/helpers/aruba_logger.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_logger.rb
-install -D -m 755 lib/helpers/aruba_math.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_math.rb
-install -D -m 755 lib/helpers/aruba_oauth.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_oauth.rb
-install -D -m 755 lib/kafka/producer.rb %{buildroot}/var/rb-arubacentral/bin/kafka/producer.rb
+install -D -m 755 bin/rb_arubacentral.rb %{buildroot}/var/rb-arubacentral/bin/rb_arubacentral.rb
+install -D -m 755 bin/api/aruba_client.rb %{buildroot}/var/rb-arubacentral/bin/api/aruba_client.rb
+install -D -m 755 bin/helpers/aruba_builder.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_builder.rb
+install -D -m 755 bin/helpers/aruba_config.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_config.rb
+install -D -m 755 bin/helpers/aruba_logger.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_logger.rb
+install -D -m 755 bin/helpers/aruba_math.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_math.rb
+install -D -m 755 bin/helpers/aruba_oauth.rb %{buildroot}/var/rb-arubacentral/bin/helpers/aruba_oauth.rb
+install -D -m 755 bin/kafka/producer.rb %{buildroot}/var/rb-arubacentral/bin/kafka/producer.rb
 
 %clean
 rm -rf %{buildroot}
@@ -57,6 +58,7 @@ systemctl daemon-reload || :
 /var/rb-arubacentral/bin/rb_arubacentral.rb
 %defattr(644,root,root)
 /var/rb-arubacentral/bin/api/aruba_client.rb
+/var/rb-arubacentral/bin/helpers/aruba_builder.rb
 /var/rb-arubacentral/bin/helpers/aruba_config.rb
 /var/rb-arubacentral/bin/helpers/aruba_logger.rb
 /var/rb-arubacentral/bin/helpers/aruba_math.rb
