@@ -67,5 +67,7 @@ systemctl daemon-reload || :
 /usr/lib/systemd/system/%{name}.service
 
 %changelog
+* Mon Apr 08 2024 Miguel Negrón <manegron@redborder.com> - 0.0.2
+- Added aruba_builder
 * Mon Jan 15 2024 David Vanhoucke <dvanhoucke@redborder.com> - 0.0.1
 - first spec version
