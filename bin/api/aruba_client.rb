@@ -319,6 +319,7 @@ module ArubaREST
       data = []
       clients['clients'].each do |client|
         next if calculated_clients.include? client['macaddr'].downcase
+
         ap = find_ap_based_on_mac(top, client['associated_device_mac'])
         ap_info = ap[0]
         ap_coords = ap[1]
@@ -350,11 +351,11 @@ module ArubaREST
           floor_location_size = 100
           while floor_location_size == 100
             floor_location = fetch_floor_location(floor_id, offset)
-            if floor_location['locations']
-              floor_location_size = floor_location['locations'].size
-              data_to_produce += process_floor_location_data(floor_location, clients, top)
-              offset += 1
-            end
+            next unless floor_location['locations']
+
+            floor_location_size = floor_location['locations'].size
+            data_to_produce += process_floor_location_data(floor_location, clients, top)
+            offset += 1
           end
         end
       end
