@@ -347,6 +347,8 @@ module ArubaREST
           floor_location_size = 100
           while floor_location_size == 100
             floor_location = fetch_floor_location(floor_id, offset)
+            next unless floor_location['locations']
+
             floor_location_size = floor_location['locations'].size
             data_to_produce += process_floor_location_data(floor_location, clients, top)
             offset += 1
