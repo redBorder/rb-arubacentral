@@ -266,9 +266,9 @@ module ArubaREST
 
     def find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
       if is_client_associated
-        find_associated_device_mac(clients, client_mac_address) || find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
+        find_associated_device_mac(clients, client_mac_address) || find_closest_ap(top, client_real_x, client_real_y)
       else
-        find_closest_ap(top, client_real_x, client_real_y)['ap_eth_mac']
+        find_closest_ap(top, client_real_x, client_real_y)
       end
     end
 
@@ -282,6 +282,10 @@ module ArubaREST
         is_client_associated = client['associated']
 
         ap_mac = find_ap_mac(is_client_associated, clients, client_mac_address, top, client_real_x, client_real_y)
+
+        next if ap_mac['ap_eth_mac'].nil?
+
+        ap_mac = ap_mac['ap_eth_mac']
 
         @log_controller.debug("AP mac found -> #{ap_mac}")
 
@@ -347,6 +351,8 @@ module ArubaREST
           floor_location_size = 100
           while floor_location_size == 100
             floor_location = fetch_floor_location(floor_id, offset)
+            next unless floor_location['locations']
+
             floor_location_size = floor_location['locations'].size
             data_to_produce += process_floor_location_data(floor_location, clients, top)
             offset += 1
