@@ -321,6 +321,8 @@ module ArubaREST
         next if calculated_clients.include? client['macaddr'].downcase
 
         ap = find_ap_based_on_mac(top, client['associated_device_mac'])
+        next if ap.nil?
+
         ap_info = ap[0]
         ap_coords = ap[1]
         ap_real_lat, ap_real_lon = ArubaMathHelper.move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
