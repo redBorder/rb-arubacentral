@@ -321,19 +321,19 @@ module ArubaREST
         next if calculated_clients.include? client['macaddr'].downcase
 
         ap = find_ap_based_on_mac(top, client['associated_device_mac'])
-        unless ap.nil?
-          ap_info = ap[0]
-          ap_coords = ap[1]
-          ap_real_lat, ap_real_lon = ArubaMathHelper.move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
-          data << build_client_data do |builder|
-            builder.write_lat(ap_real_lat)
-            builder.write_long(ap_real_lon)
-            builder.write_mac_address(client['macaddr'])
-            builder.write_ap_mac_address(client['associated_device_mac'])
-            builder.write_topology("#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}")
-            builder.write_associated(true)
-            builder.write_time(Time.now.utc.round(4).iso8601(3).to_s)
-          end
+        next if ap.nil?
+
+        ap_info = ap[0]
+        ap_coords = ap[1]
+        ap_real_lat, ap_real_lon = ArubaMathHelper.move_coordinates_meters(ap_coords['x'], -ap_coords['y'], ap_info['reference_lat'], ap_info['reference_lon'])
+        data << build_client_data do |builder|
+          builder.write_lat(ap_real_lat)
+          builder.write_long(ap_real_lon)
+          builder.write_mac_address(client['macaddr'])
+          builder.write_ap_mac_address(client['associated_device_mac'])
+          builder.write_topology("#{ap_info['campus']}>#{ap_info['building']}>#{ap_info['floor']}")
+          builder.write_associated(true)
+          builder.write_time(Time.now.utc.round(4).iso8601(3).to_s)
         end
       end
       data
