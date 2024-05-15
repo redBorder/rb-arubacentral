@@ -155,6 +155,8 @@ module ArubaREST
       wireless_clients_size = 100
       while wireless_clients_size == 100
         wireless_clients = fetch_data("/monitoring/v1/clients/wireless?offset=#{offset}", __method__.to_s)
+        break if wireless_clients.nil? || wireless_clients['clients'].empty?
+
         wireless_clients_size = wireless_clients.size
         # TODO: only keep data used (macaddr, associated_device_mac)
         data['clients'] += wireless_clients['clients']
@@ -353,7 +355,7 @@ module ArubaREST
           floor_location_size = 100
           while floor_location_size == 100
             floor_location = fetch_floor_location(floor_id, offset)
-            next unless floor_location['locations']
+            break unless floor_location['locations']
 
             floor_location_size = floor_location['locations'].size
             data_to_produce += process_floor_location_data(floor_location, clients, top)
