@@ -2,8 +2,9 @@ package arubacentral
 
 import (
 	"fmt"
-	"net/http"
 	"io"
+	"net/http"
+
 	httpclient "redborder.com/rb-arubacentral/lib"
 )
 
