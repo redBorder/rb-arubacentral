@@ -3,23 +3,26 @@ package arubacentral
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
-	httpclient "redborder.com/rb-arubacentral/lib"
+	lib "redborder.com/rb-arubacentral/lib"
 )
 
 type ArubaClient struct {
-	ClientID     string
-	ClientSecret string
-	HTTPClient   *httpclient.HTTPClient
-	OAuthHelper  *OAuthHelper
-	Token        string
+	ClientID        string
+	ClientSecret    string
+	HTTPClient      *lib.HTTPClient
+	MemcachedClient *lib.MemcachedClient
+	OAuthHelper     *OAuthHelper
+	Token           string
 }
 
-func NewArubaClient(endpoint, username, password, clientID, clientSecret, customerID string) *ArubaClient {
+func NewArubaClient(endpoint, username, password, clientID, clientSecret, customerID string, memcacheServers []string) *ArubaClient {
 	return &ArubaClient{
-		HTTPClient:  httpclient.NewHTTPClient(),
-		OAuthHelper: NewOAuthHelper(endpoint, username, password, clientID, clientSecret, customerID),
+		HTTPClient:      lib.NewHTTPClient(),
+		MemcachedClient: lib.NewMemcachedClient(memcacheServers),
+		OAuthHelper:     NewOAuthHelper(endpoint, username, password, clientID, clientSecret, customerID),
 	}
 }
 
@@ -30,6 +33,10 @@ func (a *ArubaClient) OAuth() error {
 		return err
 	}
 	if token, ok := tokenResp["access_token"].(string); ok {
+		// Store token in memcached in order to use it
+		// in other spawned services on other machines
+		log.Println("Storing access_token in memcached")
+		a.MemcachedClient.Set("arubacentral_access_token", token)
 		a.Token = token
 		return nil
 	}
@@ -37,6 +44,9 @@ func (a *ArubaClient) OAuth() error {
 }
 
 func (a *ArubaClient) Get(path string) ([]byte, error) {
+
+	// Use same token for all services
+	a.Token = a.MemcachedClient.Get("arubacentral_access_token")
 	headers := map[string]string{
 		"Authorization": fmt.Sprintf("Bearer %s", a.Token),
 	}

@@ -24,10 +24,10 @@ func connectToZooKeeper(GoAruba *arubacentral.ArubaClient, conf config.Config) {
 		if !client.IsLocked() {
 			client.Lock()
 			processors.ProcessLocations(GoAruba)
-			client.ReleaseLock()
 		}
 		log.Println("Sleeping for", conf.Service.SleepTime, "seconds")
 		time.Sleep(time.Duration(conf.Service.SleepTime) * time.Second)
+		client.ReleaseLock()
 	}
 }
 
@@ -59,6 +59,7 @@ func main() {
 		config.ArubaConfig.ClientID,
 		config.ArubaConfig.ClientSecret,
 		config.ArubaConfig.CustomerID,
+		config.MemcacheConfig.Servers,
 	)
 	connectToZooKeeper(GoAruba, config)
 }

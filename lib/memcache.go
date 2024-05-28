@@ -14,12 +14,12 @@ func NewMemcachedClient(servers []string) *MemcachedClient {
 	}
 }
 
-func (m *MemcachedClient) Get(key string) (string, error) {
+func (m *MemcachedClient) Get(key string) string {
 	item, err := m.Client.Get(key)
 	if err != nil {
-		return "", err
+		return ""
 	}
-	return string(item.Value), nil
+	return string(item.Value)
 }
 
 func (m *MemcachedClient) Set(key, value string) error {

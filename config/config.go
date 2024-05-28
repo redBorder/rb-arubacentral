@@ -22,6 +22,9 @@ type Config struct {
 	Service struct {
 		SleepTime int `yaml:"sleep_time"`
 	} `yaml:"service"`
+	MemcacheConfig struct {
+		Servers []string `yaml:"servers"`
+	} `yaml:"memcache"`
 }
 
 func ReadConfigFile(filename string) (Config, error) {
