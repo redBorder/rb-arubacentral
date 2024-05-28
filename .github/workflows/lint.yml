@@ -15,6 +15,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.22.3
+      - name: Install GoLint
+        run: go get -u golang.org/x/lint/golint
       - name: Run GoLint
         run: golangci-lint run
-        
