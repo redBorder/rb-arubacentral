@@ -4,8 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	helpers "redborder.com/rb-arubacentral/utils"
 	httpclient "redborder.com/rb-arubacentral/lib"
+	helpers "redborder.com/rb-arubacentral/utils"
+)
+
+const (
+	getSessionPath  = "%s/oauth2/authorize/central/api/login?client_id=%s"
+	getAuthCodePath = "%s/oauth2/authorize/central/api/?client_id=%s&response_type=code&scope=read"
+	getTokenPath    = "%s/oauth2/token"
 )
 
 type OAuthHelper struct {
@@ -45,7 +51,7 @@ func (o *OAuthHelper) OAuth() (map[string]interface{}, error) {
 }
 
 func (o *OAuthHelper) obtainSessionAndCSRFToken() (string, string, error) {
-	sessionURL := fmt.Sprintf("%s/oauth2/authorize/central/api/login?client_id=%s", o.Endpoint, o.ClientID)
+	sessionURL := fmt.Sprintf(getSessionPath, o.Endpoint, o.ClientID)
 	credentials := map[string]string{"username": o.Username, "password": o.Password}
 	resp, err := o.HTTPClient.Post(sessionURL, "application/json", credentials, nil)
 	if err != nil {
@@ -56,7 +62,7 @@ func (o *OAuthHelper) obtainSessionAndCSRFToken() (string, string, error) {
 }
 
 func (o *OAuthHelper) obtainAuthorizationCode(session, csrfToken string) (string, error) {
-	authCodeURL := fmt.Sprintf("%s/oauth2/authorize/central/api/?client_id=%s&response_type=code&scope=read", o.Endpoint, o.ClientID)
+	authCodeURL := fmt.Sprintf(getAuthCodePath, o.Endpoint, o.ClientID)
 	customerIDParams := map[string]string{"customer_id": o.CustomerID}
 	resp, err := o.HTTPClient.Post(authCodeURL, "application/json", customerIDParams, map[string]string{"X-CSRF-Token": csrfToken, "Cookie": fmt.Sprintf("session=%s", session)})
 	if err != nil {
@@ -71,7 +77,7 @@ func (o *OAuthHelper) obtainAuthorizationCode(session, csrfToken string) (string
 }
 
 func (o *OAuthHelper) obtainAccessToken(authCode string) (map[string]interface{}, error) {
-	tokenURL := fmt.Sprintf("%s/oauth2/token", o.Endpoint)
+	tokenURL := fmt.Sprintf(getTokenPath, o.Endpoint)
 	tokenBody := map[string]string{"client_id": o.ClientID, "client_secret": o.ClientSecret, "grant_type": "authorization_code", "code": authCode}
 	resp, err := o.HTTPClient.Post(tokenURL, "application/json", tokenBody, nil)
 	if err != nil {

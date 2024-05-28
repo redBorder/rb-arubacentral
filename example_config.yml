@@ -1,0 +1,7 @@
+aruba:
+  username: your_aruba_username
+  password: your_aruba_password
+
+zookeeper:
+  servers:
+    - 127.0.0.1:2181
