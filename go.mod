@@ -33,6 +33,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/redBorder/rbforwarder v0.0.0-20240314111631-41c7550172fa
 	github.com/redBorder/sarama-cluster v2.1.1+incompatible
+	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 )

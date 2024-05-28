@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    volumes:
+      - ./zookeeper.cfg:/conf/zookeeper.cfg 
+      - ./data:/data
+    command: ["sh", "-c", "chmod -R 777 /data /datalog && exec zkServer.sh start-foreground /conf/zookeeper.cfg"]
+    restart: always
