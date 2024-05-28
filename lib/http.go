@@ -1,4 +1,4 @@
-package httpclient
+package lib
 
 import (
 	"bytes"
@@ -23,11 +23,20 @@ func NewHTTPClient() *HTTPClient {
 	}
 }
 
-func (c *HTTPClient) Get(url string) (*http.Response, error) {
+func (c *HTTPClient) Get(url string, headers map[string]string) (*http.Response, error) {
 	client := c.pool.Get().(*http.Client)
 	defer c.pool.Put(client)
 
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

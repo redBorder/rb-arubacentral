@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"redborder.com/rb-arubacentral/rest"
+	"io/ioutil"
+
+	arubacentral "redborder.com/rb-arubacentral/rest"
 )
 
 func main() {
-	oauth := arubacentral.NewOAuthHelper(
+	ArubaClient := arubacentral.NewArubaClient(
 		"",
 		"",
 		"",
@@ -14,11 +16,19 @@ func main() {
 		"",
 		"",
 	)
-	tokenResp, err := oauth.OAuth()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	resp, err := ArubaClient.Get("/visualrf_api/v1/campus")
 
-	fmt.Println("Token Response:", tokenResp)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("Response Status:", resp.Status)
+	fmt.Println("Response Headers:", resp.Header)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Response Body:", string(body))
+
 }
