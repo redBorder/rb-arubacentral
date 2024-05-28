@@ -8,6 +8,7 @@ import (
 
 	config "redborder.com/rb-arubacentral/config"
 	lib "redborder.com/rb-arubacentral/lib"
+
 	processors "redborder.com/rb-arubacentral/processors"
 	arubacentral "redborder.com/rb-arubacentral/rest"
 )
@@ -22,11 +23,7 @@ func connectToZooKeeper(GoAruba *arubacentral.ArubaClient, conf config.Config) {
 	for {
 		if !client.IsLocked() {
 			client.Lock()
-			statuses, err := processors.ProcessApStatuses(GoAruba)
-			if err != nil {
-				log.Fatalf("Error processing AP statuses: %v", err)
-			}
-			log.Println("Statuses:", string(statuses))
+			processors.ProcessLocations(GoAruba)
 			client.ReleaseLock()
 		}
 		log.Println("Sleeping for", conf.Service.SleepTime, "seconds")
