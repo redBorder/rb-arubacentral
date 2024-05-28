@@ -19,6 +19,9 @@ type Config struct {
 	ZooKeeperConfig struct {
 		Servers []string `yaml:"servers"`
 	} `yaml:"zookeeper"`
+	Service struct {
+		SleepTime int `yaml:"sleep_time"`
+	} `yaml:"service"`
 }
 
 func ReadConfigFile(filename string) (Config, error) {

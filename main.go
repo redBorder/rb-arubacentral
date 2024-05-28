@@ -19,15 +19,13 @@ func connectToZooKeeper(GoAruba *arubacentral.ArubaClient, conf config.Config) {
 	defer client.Close()
 
 	for {
-		isLocked := client.IsLocked()
-		if !isLocked {
-			log.Println("Locking...")
+		if !client.IsLocked() {
 			client.Lock()
-			time.Sleep(5 * time.Second)
+			// Main fetch loop here
 			client.ReleaseLock()
-		} else {
-			time.Sleep(5 * time.Second)
 		}
+		log.Println("Sleeping for", conf.Service.SleepTime, "seconds")
+		time.Sleep(time.Duration(conf.Service.SleepTime) * time.Second)
 	}
 }
 

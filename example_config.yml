@@ -5,3 +5,5 @@ aruba:
 zookeeper:
   servers:
     - 127.0.0.1:2181
+service:
+  sleep_time: 30
