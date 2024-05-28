@@ -31,7 +31,8 @@ func NewZookeeperClient(servers []string) (*ZookeeperClient, error) {
 }
 
 func (z *ZookeeperClient) Get(path string) ([]byte, error) {
-	return z.Conn.Get(path)
+	data, _, err := z.Conn.Get(path)
+	return data, err
 }
 
 func (z *ZookeeperClient) Delete(path string) error {
