@@ -1,4 +1,4 @@
-name: RuboCop
+name: GoLint
 
 on:
   push:
@@ -7,15 +7,15 @@ on:
       - master
 
 jobs:
-  rubocop:
+  build:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install RuboCop
-        run: sudo gem install rubocop -v 1.59.0
-
-      - name: Run RuboCop
-        run: rubocop ./bin
+      - uses: actions/checkout@v2
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.22.3
+      - name: Run GoLint
+        run: golangci-lint run
+```

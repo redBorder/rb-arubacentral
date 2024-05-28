@@ -3,7 +3,7 @@ package arubacentral
 import (
 	"fmt"
 	"net/http"
-
+	"io"
 	httpclient "redborder.com/rb-arubacentral/lib"
 )
 
@@ -35,7 +35,7 @@ func (a *ArubaClient) OAuth() error {
 	return fmt.Errorf("access_token not found or not a string")
 }
 
-func (a *ArubaClient) Get(path string) (*http.Response, error) {
+func (a *ArubaClient) Get(path string) ([]byte, error) {
 	headers := map[string]string{
 		"Authorization": fmt.Sprintf("Bearer %s", a.Token),
 	}
@@ -60,5 +60,15 @@ func (a *ArubaClient) Get(path string) (*http.Response, error) {
 		}
 	}
 
-	return resp, nil
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }

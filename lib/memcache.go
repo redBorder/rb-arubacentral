@@ -1,4 +1,4 @@
-package arubacentral
+package lib
 
 import (
 	"github.com/bradfitz/gomemcache/memcache"
