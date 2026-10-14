@@ -10,6 +10,9 @@ License:  GNU AGPLv3
 URL:  https://github.com/redBorder/rb-arubacentral
 Source0: %{name}-%{version}.tar.gz
 
+# Runs scripts with ruby-3.4.11@global, which redborder-rubyrvm >= 4.0.0 installs
+Requires: redborder-rubyrvm >= 4.0.0
+
 %description
 %{summary}
 
