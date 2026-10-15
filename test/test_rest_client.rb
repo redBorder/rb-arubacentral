@@ -22,7 +22,18 @@ class ArubaRESTClientTest < Test::Unit::TestCase
   def setup
     cache = {"keys"=>[:test], "ttl"=>{"test"=>3600}}
 
+    # Avoid hitting the real Aruba Central API from the tests
+    OAuthHelper.singleton_class.send(:alias_method, :original_oauth, :oauth)
+    OAuthHelper.define_singleton_method(:oauth) { |*_args| { 'access_token' => 'test_token' } }
+
     @client = ArubaREST::Client.new('https://apigw-eucentral3.central.arubanetworks.com', 'username', 'password', 'client_id', 'client_secret', 'client_customer_id', cache, 0)
+    @client.define_singleton_method(:make_api_request) { |_api_endpoint| nil }
+  end
+
+  def teardown
+    OAuthHelper.singleton_class.send(:remove_method, :oauth)
+    OAuthHelper.singleton_class.send(:alias_method, :oauth, :original_oauth)
+    OAuthHelper.singleton_class.send(:remove_method, :original_oauth)
   end
 
   def test_initialize

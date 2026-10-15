@@ -11,18 +11,18 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Ruby 2.1.9
+      - uses: actions/checkout@v4
+      - name: Set up Ruby 3.4.11
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.1.9'
+          ruby-version: '3.4.11'
       - name: Bundle Install
         run: bundle install
 
       - name: Run tests
-        run: rake test
+        run: bundle exec rake test
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

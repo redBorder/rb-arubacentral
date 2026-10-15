@@ -1,6 +1,8 @@
 AllCops:
-  TargetRubyVersion: 2.1
-Metrics/LineLength:
+  TargetRubyVersion: 3.4
+  NewCops: disable
+  SuggestExtensions: false
+Layout/LineLength:
   Max: 180
 Metrics/MethodLength:
   Max: 200
@@ -14,4 +16,5 @@ Metrics/AbcSize:
   Max: 45
 Metrics/CyclomaticComplexity:
   Max: 8
-  
+Style/FrozenStringLiteralComment:
+  Enabled: false
